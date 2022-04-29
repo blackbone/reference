@@ -1,0 +1,17 @@
+{
+  "name": "com.blackbone.assets",
+  "displayName": "[B] Reference",
+  "version": "0.0.1",
+  "unity": "2020.3",
+  "keywords": [
+    "Assets",
+    "Addressables",
+    "Resource Management",
+    "Reference"
+  ],
+  "description": "Resource management solution. The reference as it supposed to be",
+  "author": {
+    "name": "Dmitrii Osipov",
+    "email": "blackboneworks@gmail.com"
+  }
+}
