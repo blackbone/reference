@@ -1,6 +1,6 @@
 ﻿namespace Assets
 {
-    internal static class AssetServiceInternal
+    public static class AssetService
     {
         public static IAssetsService Current;
     }

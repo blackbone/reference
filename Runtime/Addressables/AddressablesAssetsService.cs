@@ -37,13 +37,13 @@ namespace Assets
         
         public void Dispose()
         {
-            AssetServiceInternal.Current = null;
+            AssetService.Current = null;
             Addressables.ResourceManager.Dispose();
         }
 
         async Task IAssetsService.Initialize(IProgress<float> progress, CancellationToken cancellationToken)
         {
-            AssetServiceInternal.Current = this;
+            AssetService.Current = this;
 
             var checkProgress = CreateProgress(v => progress?.Report(v * .1f));
 

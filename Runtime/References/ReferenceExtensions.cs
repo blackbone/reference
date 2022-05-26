@@ -36,8 +36,8 @@
                 return Task.FromResult(result);
 #endif
             
-            Assert.IsNotNull(AssetServiceInternal.Current, "No active asset service");
-            return AssetServiceInternal.Current.LoadAsync<UnityEngine.Object>(reference.AssetGuid, progress, cancellationToken);
+            Assert.IsNotNull(AssetService.Current, "No active asset service");
+            return AssetService.Current.LoadAsync<UnityEngine.Object>(reference.AssetGuid, progress, cancellationToken);
         }
         
         public static
@@ -56,8 +56,8 @@
                 return Task.FromResult(result);
 #endif
             
-            Assert.IsNotNull(AssetServiceInternal.Current, "No active asset service");
-            return AssetServiceInternal.Current.LoadAsync<T>(reference.AssetGuid, progress, cancellationToken);
+            Assert.IsNotNull(AssetService.Current, "No active asset service");
+            return AssetService.Current.LoadAsync<T>(reference.AssetGuid, progress, cancellationToken);
         }
 
         public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
@@ -72,8 +72,8 @@
 #endif
             }
             
-            Assert.IsNotNull(AssetServiceInternal.Current, "No active asset service");
-            return AssetServiceInternal.Current.InstantiateAsync(reference.AssetGuid, parent, progress, cancellationToken);
+            Assert.IsNotNull(AssetService.Current, "No active asset service");
+            return AssetService.Current.InstantiateAsync(reference.AssetGuid, parent, progress, cancellationToken);
         }
 
         public static
@@ -94,16 +94,16 @@
 #endif
             }
             
-            Assert.IsNotNull(AssetServiceInternal.Current, "No active asset service");
-            return AssetServiceInternal.Current.InstantiateAsync<T>(reference.AssetGuid, parent, worldPositionStays, progress, cancellationToken);
+            Assert.IsNotNull(AssetService.Current, "No active asset service");
+            return AssetService.Current.InstantiateAsync<T>(reference.AssetGuid, parent, worldPositionStays, progress, cancellationToken);
         }
 
         public static TaskScene LoadSceneAsync(this in ReferenceScene reference,
             LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
-            Assert.IsNotNull(AssetServiceInternal.Current, "No active asset service");
-            return AssetServiceInternal.Current.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken);
+            Assert.IsNotNull(AssetService.Current, "No active asset service");
+            return AssetService.Current.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken);
         }
 
         public static
