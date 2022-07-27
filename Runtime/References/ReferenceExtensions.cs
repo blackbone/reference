@@ -2,12 +2,12 @@
 {
     using System;
     using System.Threading;
-    using Cysharp.Threading.Tasks;
     using UnityEngine;
     using UnityEngine.Assertions;
     using UnityEngine.SceneManagement;
 
 #if UNITASK
+    using Cysharp.Threading.Tasks;
     using Tasks = Cysharp.Threading.Tasks;
     using Task = Cysharp.Threading.Tasks.UniTask;
     using TaskScene = Cysharp.Threading.Tasks.UniTask<UnityEngine.SceneManagement.Scene>;
@@ -23,7 +23,7 @@
     {
         public static
 #if UNITASK
-            UniTask<UnityEngine.Object>
+            Tasks.UniTask<UnityEngine.Object>
 #else
             Tasks.Task<UnityEngine.Object>
 #endif
@@ -42,7 +42,7 @@
         
         public static
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -51,7 +51,7 @@
         {
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new UniTask<T>(result);
+                return new Tasks.UniTask<T>(result);
 #else
                 return Task.FromResult(result);
 #endif
@@ -78,7 +78,7 @@
 
         public static
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -88,7 +88,7 @@
             {
                 var instance = UnityEngine.Object.Instantiate(result, parent, worldPositionStays);
 #if UNITASK
-                return new UniTask<T>(instance);
+                return new Tasks.UniTask<T>(instance);
 #else
                 return Task.FromResult(instance);
 #endif
@@ -116,7 +116,7 @@
 
         public static
 #if UNITASK
-            UniTask<T>.Awaiter
+            Tasks.UniTask<T>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<T>
 #endif
@@ -125,7 +125,7 @@
         
         public static
 #if UNITASK
-            UniTask<Scene>.Awaiter
+            Tasks.UniTask<Scene>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<Scene>
 #endif
@@ -134,7 +134,7 @@
         
         public static
 #if UNITASK
-            UniTask<UnityEngine.Object>.Awaiter
+            Tasks.UniTask<UnityEngine.Object>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<UnityEngine.Object>
 #endif

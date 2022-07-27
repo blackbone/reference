@@ -16,6 +16,7 @@ namespace References
     using TaskScene = Cysharp.Threading.Tasks.UniTask<UnityEngine.SceneManagement.Scene>;
     using TaskGameObject = Cysharp.Threading.Tasks.UniTask<UnityEngine.GameObject>;
 #else
+    using System.Runtime.CompilerServices;
     using Tasks = System.Threading.Tasks;
     using Task = System.Threading.Tasks.Task;
     using TaskScene = System.Threading.Tasks.Task<UnityEngine.SceneManagement.Scene>;

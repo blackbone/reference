@@ -1,5 +1,5 @@
 ﻿#if ADDRESSABLES && !UNITASK
-namespace Assets
+namespace References
 {
     using System;
     using System.Threading;
@@ -23,20 +23,6 @@ namespace Assets
                 }
                 
                 return op.Status == AsyncOperationStatus.Succeeded ? op.Result : default;
-            }
-        }
-        
-        public static Task ToUniTask(this AsyncOperation op, CancellationToken cancellationToken = default)
-        {
-            return Awaiter();
-            
-            async Task Awaiter()
-            {
-                while (!op.isDone)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await Task.Yield();
-                }
             }
         }
     }
