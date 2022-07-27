@@ -95,6 +95,7 @@
         public static ReferenceScene Default = new ReferenceScene(null);
 
         [SerializeField] private string assetGuid;
+        [SerializeField] private string sceneName;
 
         /// <summary>
         /// Initializes new reference instance.
@@ -103,11 +104,29 @@
         public ReferenceScene(string assetGuid)
         {
             this.assetGuid = assetGuid;
+            this.sceneName = null;
         }
+        
+        /// <summary>
+        /// Initializes new reference instance.
+        /// </summary>
+        /// <param name="assetGuid"> Unity's scene GUID. </param>
+        /// <param name="sceneName"> Unity's scene name. </param>
+        public ReferenceScene(string assetGuid, string sceneName)
+        {
+            this.assetGuid = assetGuid;
+            this.sceneName = sceneName;
+        }
+        
         /// <summary>
         /// Unity's asset GUID.
         /// </summary>
         public readonly string AssetGuid => assetGuid;
+
+        /// <summary>
+        /// Unity's scene name;
+        /// </summary>
+        public readonly string SceneName => sceneName;
         
         /// <summary>
         /// Is assigned guid is a valid GUID. This not guarantee that asset exists or will be accessible.

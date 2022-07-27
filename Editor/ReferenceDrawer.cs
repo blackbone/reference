@@ -1,4 +1,7 @@
-﻿namespace References.Editor
+﻿// ReSharper disable LocalVariableHidesMember
+// ReSharper disable InconsistentNaming
+
+namespace References.Editor
 {
     using System;
     using UnityEditor;
@@ -6,29 +9,43 @@
 
     public abstract partial class ReferenceDrawer : PropertyDrawer
     {
-        private SerializedProperty assetGuid;
-        private SerializedProperty asset;
+        protected SerializedProperty assetGuid;
+
+        protected bool IsValid
+            => assetGuid != null
+               && !string.IsNullOrEmpty(assetGuid.stringValue)
+               && GUID.TryParse(assetGuid.stringValue, out _);
         
-        protected abstract Type TypeRestriction { get; }
+        protected abstract Type   TypeRestriction        { get; }
+
+        protected abstract bool               IsDirectLinked();
+        protected abstract void               SetDirectLink(UnityEngine.Object value);
+
+        protected abstract bool Validate(UnityEngine.Object asset, bool isLinked, ref Rect validationRect, ref Rect position);
+
+        protected abstract void DrawValidationControl(Rect validationRect, bool isLinked, string assetGuid, UnityEngine.Object asset);
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             position = EditorGUI.PrefixLabel(position, label);
-
+            
+            // the common part
             var assetGuid = (this.assetGuid ??= property.FindPropertyRelative(nameof(this.assetGuid))).stringValue;
-            var linkedAsset    = (this.asset ??= property.FindPropertyRelative(nameof(this.asset))).objectReferenceValue;
-            var isLinked = linkedAsset != null;
-            var asset     = isLinked ? linkedAsset : AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), TypeRestriction);
+            var validAsset     = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), TypeRestriction);
+            var isLinked  = IsDirectLinked();
 
+            var validationRect  = Rect.zero;
             var addressableRect = Rect.zero;
+
+            var isValid = Validate(validAsset, isLinked, ref validationRect, ref position);
 #if ADDRESSABLES
-            if (!isLinked) ModifyAddressableRect(asset, ref addressableRect, ref position);
+            if (!isLinked) ModifyAddressableRect(validAsset, ref addressableRect, ref position);
 #endif
 
             var linkRect = new Rect(position.x + position.width - 23, position.y, 23, position.height);
             position.width -= 23;
             
-            var newValue = EditorGUI.ObjectField(position, asset, TypeRestriction, false);
+            var newValue = EditorGUI.ObjectField(position, validAsset, TypeRestriction, false);
 
             var iconContent = isLinked
                 ? EditorGUIUtility.IconContent("icons/packagemanager/dark/link.png", "|Linked. Will be loaded by direct link.")
@@ -36,22 +53,22 @@
 
             if (GUI.Button(linkRect, iconContent, EditorStyles.toolbarButton))
             {
-                this.asset.objectReferenceValue = isLinked ? null : asset;
+                SetDirectLink(isLinked ? null : validAsset);
                 property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
             }
             
 #if ADDRESSABLES
-            if(!isLinked)
-                DrawAddressablesControl(addressableRect, assetGuid, asset);
+            if(!isLinked) DrawAddressablesControl(addressableRect, assetGuid, validAsset);
 #endif
+            if (!isValid) DrawValidationControl(validationRect, isLinked, assetGuid, validAsset);
 
-            if (newValue == asset)
+            if (newValue == validAsset)
                 return;
 
             if (newValue == null)
             {
                 this.assetGuid.stringValue      = string.Empty;
-                this.asset.objectReferenceValue = null;
+                SetDirectLink(null);
                 property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 return;
             }

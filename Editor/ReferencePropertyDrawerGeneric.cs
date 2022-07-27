@@ -6,7 +6,7 @@
     using UnityEditor;
 
     [CustomPropertyDrawer(typeof(Reference<>), true)]
-    public sealed class ReferencePropertyDrawerGeneric : ReferenceDrawer
+    public sealed class ReferencePropertyDrawerGeneric : ReferencePropertyDrawer
     {
         private static readonly Type IList = typeof(IList);
         

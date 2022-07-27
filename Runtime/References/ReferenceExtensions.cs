@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading;
+    using Cysharp.Threading.Tasks;
     using UnityEngine;
     using UnityEngine.Assertions;
     using UnityEngine.SceneManagement;
@@ -11,7 +12,6 @@
     using Task = Cysharp.Threading.Tasks.UniTask;
     using TaskScene = Cysharp.Threading.Tasks.UniTask<UnityEngine.SceneManagement.Scene>;
     using TaskGameObject = Cysharp.Threading.Tasks.UniTask<UnityEngine.GameObject>;
-
 #else
     using Tasks = System.Threading.Tasks;
     using Task = System.Threading.Tasks.Task;
@@ -23,7 +23,7 @@
     {
         public static
 #if UNITASK
-            Tasks.UniTask<UnityEngine.Object>
+            UniTask<UnityEngine.Object>
 #else
             Tasks.Task<UnityEngine.Object>
 #endif
@@ -42,7 +42,7 @@
         
         public static
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -51,7 +51,7 @@
         {
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new Tasks.UniTask<T>(result);
+                return new UniTask<T>(result);
 #else
                 return Task.FromResult(result);
 #endif
@@ -78,7 +78,7 @@
 
         public static
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -88,7 +88,7 @@
             {
                 var instance = UnityEngine.Object.Instantiate(result, parent, worldPositionStays);
 #if UNITASK
-                return new Tasks.UniTask<T>(instance);
+                return new UniTask<T>(instance);
 #else
                 return Task.FromResult(instance);
 #endif
@@ -103,12 +103,20 @@
             CancellationToken cancellationToken = default)
         {
             Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return AssetService.Current.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken);
+            return string.IsNullOrEmpty(reference.SceneName)
+                ? AssetService.Current.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken)
+                : loadSceneAsync(reference, loadSceneMode, progress, cancellationToken);
+
+            static async TaskScene loadSceneAsync(ReferenceScene reference, LoadSceneMode loadSceneMode, IProgress<float> progress, CancellationToken cancellationToken)
+            {
+                await SceneManager.LoadSceneAsync(reference.SceneName, loadSceneMode).ToUniTask(progress, cancellationToken: cancellationToken);
+                return SceneManager.GetSceneByName(reference.SceneName);
+            }
         }
 
         public static
 #if UNITASK
-            Tasks.UniTask<T>.Awaiter
+            UniTask<T>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<T>
 #endif
@@ -117,7 +125,7 @@
         
         public static
 #if UNITASK
-            Tasks.UniTask<Scene>.Awaiter
+            UniTask<Scene>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<Scene>
 #endif
@@ -126,7 +134,7 @@
         
         public static
 #if UNITASK
-            Tasks.UniTask<UnityEngine.Object>.Awaiter
+            UniTask<UnityEngine.Object>.Awaiter
 #else
             System.Runtime.CompilerServices.TaskAwaiter<UnityEngine.Object>
 #endif
