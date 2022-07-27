@@ -1,5 +1,5 @@
 #if ADDRESSABLES
-namespace Assets
+namespace References
 {
     using System;
     using System.Collections.Generic;

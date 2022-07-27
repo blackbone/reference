@@ -1,4 +1,4 @@
-﻿namespace Assets.Editor
+﻿namespace References.Editor
 {
     using System;
     using UnityEditor;

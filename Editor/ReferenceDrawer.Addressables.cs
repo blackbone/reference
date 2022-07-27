@@ -1,5 +1,5 @@
 ﻿#if ADDRESSABLES
-namespace Assets.Editor
+namespace References.Editor
 {
     using System.Diagnostics;
     using UnityEditor;

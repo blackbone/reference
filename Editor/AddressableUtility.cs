@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Assets.Editor
+namespace References.Editor
 {
     using System;
     using UnityEditor.AddressableAssets;

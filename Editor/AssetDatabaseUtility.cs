@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Assets.Editor
+namespace References.Editor
 {
     public static class AssetDatabaseUtility
     {

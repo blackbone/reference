@@ -1,4 +1,4 @@
-﻿namespace Assets
+﻿namespace References
 {
     using System;
     using System.Threading;

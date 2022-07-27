@@ -1,4 +1,4 @@
-﻿namespace Assets
+﻿namespace References
 {
     public static class AssetService
     {
