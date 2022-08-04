@@ -9,7 +9,10 @@ namespace References.Editor
 
     public abstract partial class ReferenceDrawer : PropertyDrawer
     {
-        public override bool CanCacheInspectorGUI(SerializedProperty property) => false;
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+            => EditorGUIUtility.singleLineHeight;
+
+        public override bool  CanCacheInspectorGUI(SerializedProperty property) => false;
 
         protected abstract Type   TypeRestriction        { get; }
 
@@ -22,7 +25,17 @@ namespace References.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            position = EditorGUI.PrefixLabel(position, label);
+            // not array element - draw label
+            string path = property.propertyPath;
+            if (!path.EndsWith(']'))
+                position = EditorGUI.PrefixLabel(position, label);
+            else
+            {
+                var lastIndex = path.LastIndexOf('[') + 1;
+                
+                EditorGUI.LabelField(position, $"{path.Substring(lastIndex, path.Length - lastIndex - 1)}.");
+                position.x += 30;
+            }
             
             // the common part
             var assetGuidProperty = property.FindPropertyRelative("assetGuid");
