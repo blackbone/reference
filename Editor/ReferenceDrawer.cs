@@ -9,17 +9,12 @@ namespace References.Editor
 
     public abstract partial class ReferenceDrawer : PropertyDrawer
     {
-        protected SerializedProperty assetGuid;
+        public override bool CanCacheInspectorGUI(SerializedProperty property) => false;
 
-        protected bool IsValid
-            => assetGuid != null
-               && !string.IsNullOrEmpty(assetGuid.stringValue)
-               && GUID.TryParse(assetGuid.stringValue, out _);
-        
         protected abstract Type   TypeRestriction        { get; }
 
-        protected abstract bool               IsDirectLinked();
-        protected abstract void               SetDirectLink(UnityEngine.Object value);
+        protected abstract bool IsDirectLinked(SerializedProperty property);
+        protected abstract void SetDirectLink(SerializedProperty  property, UnityEngine.Object value);
 
         protected abstract bool Validate(UnityEngine.Object asset, bool isLinked, ref Rect validationRect, ref Rect position);
 
@@ -30,9 +25,10 @@ namespace References.Editor
             position = EditorGUI.PrefixLabel(position, label);
             
             // the common part
-            var assetGuid = (this.assetGuid ??= property.FindPropertyRelative(nameof(this.assetGuid))).stringValue;
+            var assetGuidProperty = property.FindPropertyRelative("assetGuid");
+            var assetGuid = assetGuidProperty.stringValue;
             var validAsset     = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), TypeRestriction);
-            var isLinked  = IsDirectLinked();
+            var isLinked  = IsDirectLinked(property);
 
             var validationRect  = Rect.zero;
             var addressableRect = Rect.zero;
@@ -53,12 +49,12 @@ namespace References.Editor
 
             if (GUI.Button(linkRect, iconContent, EditorStyles.toolbarButton))
             {
-                SetDirectLink(isLinked ? null : validAsset);
+                SetDirectLink(property, isLinked ? null : validAsset);
                 property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
             }
             
 #if ADDRESSABLES
-            if(!isLinked) DrawAddressablesControl(addressableRect, assetGuid, validAsset);
+            if (!isLinked) DrawAddressablesControl(addressableRect, assetGuid, validAsset);
 #endif
             if (!isValid) DrawValidationControl(validationRect, isLinked, assetGuid, validAsset);
 
@@ -67,8 +63,8 @@ namespace References.Editor
 
             if (newValue == null)
             {
-                this.assetGuid.stringValue      = string.Empty;
-                SetDirectLink(null);
+                assetGuidProperty.stringValue      = string.Empty;
+                SetDirectLink(property, null);
                 property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 return;
             }
@@ -76,7 +72,7 @@ namespace References.Editor
             if (!AssetDatabaseUtility.TryGetAssetGuid(newValue, out var guid))
                 Debug.LogError("ERROR");
 
-            this.assetGuid.stringValue = guid;
+            assetGuidProperty.stringValue = guid;
             property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
     }

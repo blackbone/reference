@@ -11,25 +11,20 @@ namespace References.Editor
     [CustomPropertyDrawer(typeof(Reference), false)]
     public class ReferencePropertyDrawer : ReferenceDrawer
     {
-        private            SerializedProperty asset;
+        protected override Type TypeRestriction => typeof(UnityEngine.Object);
         
-        protected override Type               TypeRestriction => typeof(UnityEngine.Object);
-        
-        protected override bool IsDirectLinked() => asset.objectReferenceValue != null;
+        protected override bool IsDirectLinked(SerializedProperty property)
+            => property.FindPropertyRelative("asset").objectReferenceValue != null;
 
-        protected override void SetDirectLink(UnityEngine.Object value) => asset.objectReferenceValue = value;
+        protected override void SetDirectLink(SerializedProperty property, UnityEngine.Object value)
+            => property.FindPropertyRelative("asset").objectReferenceValue = value;
+        
         protected override bool Validate(UnityEngine.Object validAsset, bool isLinked, ref Rect validationRect, ref Rect position)
             => true;
 
         protected override void DrawValidationControl(Rect validationRect, bool isLinked, string assetGuid, UnityEngine.Object validAsset)
         {
              // no op
-        }
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            asset = asset ??= property.FindPropertyRelative(nameof(asset));
-            base.OnGUI(position, property, label);
         }
     }
 }

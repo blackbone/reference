@@ -29,11 +29,10 @@ namespace References.Editor
                     ? EditorGUIUtility.IconContent("icons/processed/d_prefabvariant icon.asset", $"|Is implicit addressable ({assetEntry.address})")
                     : EditorGUIUtility.IconContent("icons/processed/d_prefabmodel icon.asset", $"|Is addressable ({assetEntry.address}) ")
                 : EditorGUIUtility.IconContent("d_console.warnicon.sml", $"|Not addressable! Link or add to addressables by click.");
-            if (GUI.Button(rect, iconContent, EditorStyles.toolbarButton))
-            {
-                if (!isAddressable || isImplicitlyAdded) AddressableUtility.AddToAddressables(asset, null, AssetDatabase.GetAssetPath(asset));
-                else AddressableUtility.RemoveFromAddressables(asset);
-            }
+
+            if (!GUI.Button(rect, iconContent, EditorStyles.toolbarButton)) return;
+            if (!isAddressable || isImplicitlyAdded) AddressableUtility.AddToAddressables(asset, null, AssetDatabase.GetAssetPath(asset));
+            else AddressableUtility.RemoveFromAddressables(asset);
         }
     }
 }
