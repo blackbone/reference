@@ -14,7 +14,7 @@ namespace References.Editor
 
         public override bool  CanCacheInspectorGUI(SerializedProperty property) => false;
 
-        protected abstract Type   TypeRestriction        { get; }
+        protected abstract Type TypeRestriction        { get; }
 
         protected abstract bool IsDirectLinked(SerializedProperty property);
         protected abstract void SetDirectLink(SerializedProperty  property, UnityEngine.Object value);
@@ -87,6 +87,35 @@ namespace References.Editor
 
             assetGuidProperty.stringValue = guid;
             property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        public static string Draw(Rect position, string assetGuid, GUIContent label, Type typeRestriction)
+        {
+            var validAsset     = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), typeRestriction);
+
+            var addressableRect = Rect.zero;
+
+#if ADDRESSABLES
+            ModifyAddressableRect(validAsset, ref addressableRect, ref position);
+#endif
+
+            position = EditorGUI.PrefixLabel(position, label);
+            var newValue = EditorGUI.ObjectField(position, validAsset, typeRestriction, false);
+
+#if ADDRESSABLES
+            DrawAddressablesControl(addressableRect, assetGuid, validAsset);
+#endif
+
+            if (newValue == validAsset)
+                return assetGuid;
+
+            if (newValue == null)
+                return string.Empty;
+
+            if (!AssetDatabaseUtility.TryGetAssetGuid(newValue, out var guid))
+                Debug.LogError("ERROR");
+
+            return guid;
         }
     }
 }

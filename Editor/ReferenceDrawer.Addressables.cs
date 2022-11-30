@@ -8,7 +8,7 @@ namespace References.Editor
     public abstract partial class ReferenceDrawer
     {
         [Conditional("ADDRESSABLES")]
-        private void ModifyAddressableRect(Object asset, ref Rect addressableRect, ref Rect objectFieldRect)
+        private static void ModifyAddressableRect(Object asset, ref Rect addressableRect, ref Rect objectFieldRect)
         {
             if (asset != null)
             {
@@ -20,7 +20,7 @@ namespace References.Editor
         }
 
         [Conditional("ADDRESSABLES")]
-        private void DrawAddressablesControl(Rect rect, string assetGuid, Object asset)
+        private static void DrawAddressablesControl(Rect rect, string assetGuid, Object asset)
         {
             if (asset == null) return;
             var isAddressable = AddressableUtility.TryGetAssetEntry(assetGuid, out var assetEntry, out var isImplicitlyAdded);
