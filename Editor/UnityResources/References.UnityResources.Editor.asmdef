@@ -1,0 +1,9 @@
+{
+  "name": "References.UnityResources.Editor",
+  "rootNamespace": "References.UnityResources.Editor",
+  "references": [
+    "GUID:1fbbf63fe778474faec3f6a33a090161",
+    "References.UnityResources",
+    "GUID:5b5579d2eebe453eabb64b5c98fed731"
+  ]
+}

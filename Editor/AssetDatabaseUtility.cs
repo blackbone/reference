@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace References.Editor
 {
-    public static class AssetDatabaseUtility
+    internal static class AssetDatabaseUtility
     {
         public static bool TryGetAssetGuid(Object asset, out string assetGuid)
         {

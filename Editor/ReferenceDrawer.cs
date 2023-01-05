@@ -1,121 +1,76 @@
 ﻿// ReSharper disable LocalVariableHidesMember
 // ReSharper disable InconsistentNaming
 
+using System.Linq;
+
 namespace References.Editor
 {
     using System;
     using UnityEditor;
     using UnityEngine;
 
-    public abstract partial class ReferenceDrawer : PropertyDrawer
+    public abstract class ReferenceDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
             => EditorGUIUtility.singleLineHeight;
 
-        public override bool  CanCacheInspectorGUI(SerializedProperty property) => false;
+        public override bool CanCacheInspectorGUI(SerializedProperty property) => false;
 
-        protected abstract Type TypeRestriction        { get; }
-
-        protected abstract bool IsDirectLinked(SerializedProperty property);
-        protected abstract void SetDirectLink(SerializedProperty  property, UnityEngine.Object value);
-
-        protected abstract bool Validate(UnityEngine.Object asset, bool isLinked, ref Rect validationRect, ref Rect position);
-
-        protected abstract void DrawValidationControl(Rect validationRect, bool isLinked, string assetGuid, UnityEngine.Object asset);
+        protected abstract Type TypeRestriction { get; }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // not array element - draw label
-            string path = property.propertyPath;
+            var path = property.propertyPath;
             if (!path.EndsWith(']'))
                 position = EditorGUI.PrefixLabel(position, label);
             else
             {
                 var lastIndex = path.LastIndexOf('[') + 1;
-                
+
                 EditorGUI.LabelField(position, $"{path.Substring(lastIndex, path.Length - lastIndex - 1)}.");
                 position.x += 30;
             }
             
-            // the common part
-            var assetGuidProperty = property.FindPropertyRelative("assetGuid");
+            var assetGuidProperty = property.FindPropertyRelative(Reference.Names.AssetGuid);
+            var instanceIdProperty = property.FindPropertyRelative(Reference.Names.InstanceId);
             var assetGuid = assetGuidProperty.stringValue;
-            var validAsset     = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), TypeRestriction);
-            var isLinked  = IsDirectLinked(property);
-
-            var validationRect  = Rect.zero;
-            var addressableRect = Rect.zero;
-
-            var isValid = Validate(validAsset, isLinked, ref validationRect, ref position);
-#if ADDRESSABLES
-            if (!isLinked) ModifyAddressableRect(validAsset, ref addressableRect, ref position);
-#endif
-
-            var linkRect = new Rect(position.x + position.width - 23, position.y, 23, position.height);
-            position.width -= 23;
+            var instanceId = instanceIdProperty.intValue;
+            var currentAsset = GetEditorAsset(assetGuid, instanceId);
             
-            var newValue = EditorGUI.ObjectField(position, validAsset, TypeRestriction, false);
-
-            var iconContent = isLinked
-                ? EditorGUIUtility.IconContent("icons/packagemanager/dark/link.png", "|Linked. Will be loaded by direct link.")
-                : EditorGUIUtility.IconContent("icons/unlinked.png", "|Unlinked. Will be loaded through Asset Service.");
-
-            if (GUI.Button(linkRect, iconContent, EditorStyles.toolbarButton))
-            {
-                SetDirectLink(property, isLinked ? null : validAsset);
-                property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-            }
-            
-#if ADDRESSABLES
-            if (!isLinked) DrawAddressablesControl(addressableRect, assetGuid, validAsset);
-#endif
-            if (!isValid) DrawValidationControl(validationRect, isLinked, assetGuid, validAsset);
-
-            if (newValue == validAsset)
+            var newAsset = EditorGUI.ObjectField(position, currentAsset, TypeRestriction, false);
+            if (newAsset == currentAsset)
                 return;
-
-            if (newValue == null)
+            
+            if (newAsset == null)
             {
-                assetGuidProperty.stringValue      = string.Empty;
-                SetDirectLink(property, null);
-                property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                assetGuidProperty.stringValue = null;
+                instanceIdProperty.intValue = 0;
                 return;
             }
 
-            if (!AssetDatabaseUtility.TryGetAssetGuid(newValue, out var guid))
-                Debug.LogError("ERROR");
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(newAsset, out var newGuid, out long _);
+            var newInstanceId = newAsset != null ? newAsset.GetInstanceID() : 0;
 
-            assetGuidProperty.stringValue = guid;
-            property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            if (newGuid == assetGuid && instanceId == newInstanceId)
+                return;
+                    
+            assetGuidProperty.stringValue = newGuid;
+            instanceIdProperty.intValue = newInstanceId;
         }
 
-        public static string Draw(Rect position, string assetGuid, GUIContent label, Type typeRestriction)
+        private static UnityEngine.Object GetEditorAsset(string assetGuid, int instanceId)
         {
-            var validAsset     = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(assetGuid), typeRestriction);
+            if (string.IsNullOrEmpty(assetGuid))
+                return null;
+            
+            var path = AssetDatabase.GUIDToAssetPath(assetGuid);
+            var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
+            if (mainAsset.GetInstanceID() == instanceId)
+                return mainAsset;
 
-            var addressableRect = Rect.zero;
-
-#if ADDRESSABLES
-            ModifyAddressableRect(validAsset, ref addressableRect, ref position);
-#endif
-
-            position = EditorGUI.PrefixLabel(position, label);
-            var newValue = EditorGUI.ObjectField(position, validAsset, typeRestriction, false);
-
-#if ADDRESSABLES
-            DrawAddressablesControl(addressableRect, assetGuid, validAsset);
-#endif
-
-            if (newValue == validAsset)
-                return assetGuid;
-
-            if (newValue == null)
-                return string.Empty;
-
-            if (!AssetDatabaseUtility.TryGetAssetGuid(newValue, out var guid))
-                Debug.LogError("ERROR");
-
-            return guid;
+            var allAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+            return allAssets.FirstOrDefault(asset => asset.GetInstanceID() == instanceId);
         }
     }
 }

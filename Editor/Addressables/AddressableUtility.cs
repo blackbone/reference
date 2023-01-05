@@ -1,4 +1,3 @@
-#if ADDRESSABLES
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -11,7 +10,7 @@ namespace References.Editor
     using UnityEditor.AddressableAssets.Settings;
     using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 
-    public static class AddressableUtility
+    internal static class AddressableUtility
     {
         private static readonly Type ComponentType = typeof(Component);
         
@@ -186,4 +185,3 @@ namespace References.Editor
         }
     }
 }
-#endif

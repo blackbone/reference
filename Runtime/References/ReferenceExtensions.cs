@@ -8,7 +8,6 @@
 
 #if UNITASK
     using Cysharp.Threading.Tasks;
-    using Tasks = Cysharp.Threading.Tasks;
     using Task = Cysharp.Threading.Tasks.UniTask;
     using TaskScene = Cysharp.Threading.Tasks.UniTask<UnityEngine.SceneManagement.Scene>;
     using TaskGameObject = Cysharp.Threading.Tasks.UniTask<UnityEngine.GameObject>;
@@ -23,7 +22,7 @@
     {
         public static
 #if UNITASK
-            Tasks.UniTask<UnityEngine.Object>
+            UniTask<UnityEngine.Object>
 #else
             Tasks.Task<UnityEngine.Object>
 #endif
@@ -31,18 +30,19 @@
         {
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new Tasks.UniTask<UnityEngine.Object>(result);
+                return new UniTask<UnityEngine.Object>(result);
 #else
                 return Task.FromResult(result);
 #endif
-            
-            Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return AssetService.Current.LoadAsync<UnityEngine.Object>(reference.AssetGuid, progress, cancellationToken);
+
+            var assetProvider = AssetService.GetAssetProvider(reference);
+            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            return assetProvider.LoadAsync<UnityEngine.Object>(reference, progress, cancellationToken);
         }
         
         public static
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -51,16 +51,17 @@
         {
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new Tasks.UniTask<T>(result);
+                return new UniTask<T>(result);
 #else
                 return Task.FromResult(result);
 #endif
             
-            Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return AssetService.Current.LoadAsync<T>(reference.AssetGuid, progress, cancellationToken);
+            var assetProvider = AssetService.GetAssetProvider(reference);
+            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            return assetProvider.LoadAsync<T>(reference, progress, cancellationToken);
         }
 
-        public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent = null, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             if (CheckDirectReference(reference, out var result))
             {
@@ -72,13 +73,14 @@
 #endif
             }
             
-            Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return AssetService.Current.InstantiateAsync(reference.AssetGuid, parent, progress, cancellationToken);
+            var assetProvider = AssetService.GetAssetProvider(reference);
+            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            return assetProvider.InstantiateAsync(reference, parent, worldPositionStays, progress, cancellationToken);
         }
 
         public static
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -88,58 +90,26 @@
             {
                 var instance = UnityEngine.Object.Instantiate(result, parent, worldPositionStays);
 #if UNITASK
-                return new Tasks.UniTask<T>(instance);
+                return new UniTask<T>(instance);
 #else
                 return Task.FromResult(instance);
 #endif
             }
             
-            Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return AssetService.Current.InstantiateAsync<T>(reference.AssetGuid, parent, worldPositionStays, progress, cancellationToken);
+            
+            var assetProvider = AssetService.GetAssetProvider(reference);
+            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            return assetProvider.InstantiateAsync<T>(reference, parent, worldPositionStays, progress, cancellationToken);
         }
 
         public static TaskScene LoadSceneAsync(this in ReferenceScene reference,
             LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
-            Assert.IsNotNull(AssetService.Current, "No active asset service");
-            return string.IsNullOrEmpty(reference.SceneName)
-                ? AssetService.Current.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken)
-                : loadSceneAsync(reference, loadSceneMode, progress, cancellationToken);
-
-            static async TaskScene loadSceneAsync(ReferenceScene reference, LoadSceneMode loadSceneMode, IProgress<float> progress, CancellationToken cancellationToken)
-            {
-                await SceneManager.LoadSceneAsync(reference.SceneName, loadSceneMode).ToUniTask(progress, cancellationToken: cancellationToken);
-                return SceneManager.GetSceneByName(reference.SceneName);
-            }
+            var assetProvider = AssetService.GetAssetProvider(reference);
+            Assert.IsNotNull(assetProvider, "No active asset service");
+            return assetProvider.LoadSceneAsync(reference, loadSceneMode, progress, cancellationToken);
         }
-
-        public static
-#if UNITASK
-            Tasks.UniTask<T>.Awaiter
-#else
-            System.Runtime.CompilerServices.TaskAwaiter<T>
-#endif
-            GetAwaiter<T>(this Reference<T> reference) where T : UnityEngine.Object
-            => reference.LoadAsync().GetAwaiter();
-        
-        public static
-#if UNITASK
-            Tasks.UniTask<Scene>.Awaiter
-#else
-            System.Runtime.CompilerServices.TaskAwaiter<Scene>
-#endif
-            GetAwaiter(this ReferenceScene reference)
-            => reference.LoadSceneAsync().GetAwaiter();
-        
-        public static
-#if UNITASK
-            Tasks.UniTask<UnityEngine.Object>.Awaiter
-#else
-            System.Runtime.CompilerServices.TaskAwaiter<UnityEngine.Object>
-#endif
-            GetAwaiter(this Reference reference)
-            => reference.LoadAsync().GetAwaiter();
 
         private static bool CheckDirectReference(Reference reference, out UnityEngine.Object result)
         {

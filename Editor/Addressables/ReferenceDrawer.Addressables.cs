@@ -1,5 +1,4 @@
-﻿#if ADDRESSABLES
-namespace References.Editor
+﻿namespace References.Editor
 {
     using System.Diagnostics;
     using UnityEditor;
@@ -7,7 +6,6 @@ namespace References.Editor
 
     public abstract partial class ReferenceDrawer
     {
-        [Conditional("ADDRESSABLES")]
         private static void ModifyAddressableRect(Object asset, ref Rect addressableRect, ref Rect objectFieldRect)
         {
             if (asset != null)
@@ -19,7 +17,6 @@ namespace References.Editor
                 addressableRect = Rect.zero;
         }
 
-        [Conditional("ADDRESSABLES")]
         private static void DrawAddressablesControl(Rect rect, string assetGuid, Object asset)
         {
             if (asset == null) return;
@@ -36,4 +33,3 @@ namespace References.Editor
         }
     }
 }
-#endif
