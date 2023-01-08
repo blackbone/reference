@@ -2,16 +2,14 @@
 
 namespace References
 {
-    public static class AssetService
+    internal static class AssetService
     {
-        private static readonly List<IAssetProvider> AssetProviders;
+        private static readonly List<IAssetProvider> AssetProviders = new();
 
-        static AssetService() => AssetProviders = new List<IAssetProvider>();
-
-        internal static IAssetProvider GetAssetProvider(in IReference reference)
+        internal static IAssetProvider GetAssetProvider(in string guid)
         {
             foreach (var assetProvider in AssetProviders)
-                if (assetProvider.CanProvide(reference))
+                if (assetProvider.CanProvideAsset(guid))
                     return assetProvider;
 
             return null;
@@ -24,11 +22,11 @@ namespace References
 
             for (var i = 0; i < AssetProviders.Count; i++)
             {
-                if (assetProvider.Priority > AssetProviders[0].Priority)
-                {
-                    AssetProviders.Insert(i, assetProvider);
-                    return true;
-                }
+                if (assetProvider.Priority <= AssetProviders[0].Priority)
+                    continue;
+                
+                AssetProviders.Insert(i, assetProvider);
+                return true;
             }
             
             AssetProviders.Add(assetProvider);

@@ -11,6 +11,8 @@ namespace References
     {
         [SerializeField] private string guid;
         
+        internal string AssetGuid => guid;
+        
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.
         /// </summary>

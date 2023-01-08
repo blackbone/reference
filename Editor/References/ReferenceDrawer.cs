@@ -1,6 +1,8 @@
 ﻿// ReSharper disable LocalVariableHidesMember
 // ReSharper disable InconsistentNaming
 
+using System.Linq;
+
 namespace References.Editor
 {
     using System;
@@ -24,30 +26,30 @@ namespace References.Editor
         public override bool CanCacheInspectorGUI(SerializedProperty property) => false;
 
         protected abstract Type TypeRestriction { get; }
-        protected abstract bool UseSubAssetIds { get; }
-        protected abstract bool UseDirectLink { get; }
+        protected abstract bool CanReferSubAssets { get; }
+        protected abstract bool CanBeDirect { get; }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // not array element - draw label
-            var path = property.propertyPath;
-            if (!path.EndsWith(']'))
+            var propertyPath = property.propertyPath;
+            if (!propertyPath.EndsWith(']'))
                 position = EditorGUI.PrefixLabel(position, label);
             else
             {
-                var lastIndex = path.LastIndexOf('[') + 1;
+                var lastIndex = propertyPath.LastIndexOf('[') + 1;
 
-                EditorGUI.LabelField(position, $"{path.Substring(lastIndex, path.Length - lastIndex - 1)}.");
+                EditorGUI.LabelField(position, $"{propertyPath.Substring(lastIndex, propertyPath.Length - lastIndex - 1)}.");
                 position.x += 30;
                 position.width -= 30;
             }
 
             SerializedProperty guidProperty;
-            SerializedProperty subAssetIdProperty = null;
+            SerializedProperty subAssetProperty = null;
             SerializedProperty directReferenceProperty = null;
 
             string guid = null;
-            var subAssetId = 0L;
+            string subAsset = null;
             UnityEngine.Object directReference = null;
             var needChangeLink = false;
             var isDirectlyLinked = false;
@@ -55,27 +57,27 @@ namespace References.Editor
             guidProperty = property.FindPropertyRelative(Reference.Names.Guid);
             guid = guidProperty.stringValue;
 
-            if (UseSubAssetIds)
+            if (CanReferSubAssets)
             {
-                subAssetIdProperty = property.FindPropertyRelative(Reference.Names.SubAssetId);
-                subAssetId = subAssetIdProperty.longValue;
+                subAssetProperty = property.FindPropertyRelative(Reference.Names.SubAsset);
+                subAsset = subAssetProperty.stringValue;
             }
 
-            if (UseDirectLink)
+            if (CanBeDirect)
             {
                 directReferenceProperty = property.FindPropertyRelative(Reference.Names.DirectReference);
                 directReference = directReferenceProperty.objectReferenceValue;
                 isDirectlyLinked = directReference != null;
             }
             
-            var currentAsset = GetEditorAsset(guid, UseSubAssetIds ? subAssetId : null);
+            var currentAsset = GetEditorAsset(guid, CanReferSubAssets ? subAsset : null);
 
             // drawing
-            if (UseDirectLink) position.width -= 30;
+            if (CanBeDirect) position.width -= 30;
 
             var newAsset = EditorGUI.ObjectField(position, currentAsset, TypeRestriction, false);
             
-            if (UseDirectLink)
+            if (CanBeDirect)
             {
                 position.x += position.width;
                 position.width = 30;
@@ -96,7 +98,7 @@ namespace References.Editor
             if (needChangeLink)
             {
                 // ReSharper disable PossibleNullReferenceException
-                if (UseDirectLink) directReferenceProperty.objectReferenceValue = isDirectlyLinked ? null : newAsset;
+                if (CanBeDirect) directReferenceProperty.objectReferenceValue = isDirectlyLinked ? null : newAsset;
                 // ReSharper restore PossibleNullReferenceException
                 
                 property.serializedObject.ApplyModifiedProperties();
@@ -105,23 +107,33 @@ namespace References.Editor
             }
 
             string newGuid;
-            long newSubAssetId;
+            string newSubAsset;
 
             if (newAsset == null)
             {
                 newGuid = null;
-                newSubAssetId = 0;
+                newSubAsset = null;
             }
             else
             {
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(newAsset, out newGuid, out newSubAssetId))
+                if (newAsset is Component component)
+                {
+                    newSubAsset = null;
+
+                    if (TypeRestriction.IsInstanceOfType(component))
+                        newAsset = component;
+                }
+                else
+                    newSubAsset = AssetDatabase.IsMainAsset(newAsset) ? null : newAsset.name;
+
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(newAsset, out newGuid, out long _))
                 {
                     Debug.LogError("WTF? Something went wrong!");
                     return;
                 }
             }
 
-            if (newGuid == guid && subAssetId == newSubAssetId)
+            if (newGuid == guid && subAsset == newSubAsset)
             {
                 Debug.LogError("WTF? Asset changed but guid and instance id not!");
                 return;
@@ -129,44 +141,36 @@ namespace References.Editor
             
             guidProperty.stringValue = newGuid;
             // ReSharper disable PossibleNullReferenceException
-            if (UseSubAssetIds) subAssetIdProperty.longValue = newSubAssetId;
-            if (UseDirectLink) directReferenceProperty.objectReferenceValue = isDirectlyLinked ? newAsset : null;
+            if (CanReferSubAssets) subAssetProperty.stringValue = newSubAsset;
+            if (CanBeDirect) directReferenceProperty.objectReferenceValue = isDirectlyLinked ? newAsset : null;
             // ReSharper restore PossibleNullReferenceException
             
             property.serializedObject.ApplyModifiedProperties();
             property.serializedObject.UpdateIfRequiredOrScript();
         }
 
-        private static UnityEngine.Object GetEditorAsset(string guid, long? subAssetId)
+        private UnityEngine.Object GetEditorAsset(string guid, string subAssetName)
         {
             if (string.IsNullOrEmpty(guid))
                 return null;
             
             var path = AssetDatabase.GUIDToAssetPath(guid);
-            var asset = AssetDatabase.LoadMainAssetAtPath(path);
+            var asset = string.IsNullOrEmpty(subAssetName)
+                ? AssetDatabase.LoadMainAssetAtPath(path)
+                : AssetDatabase.LoadAllAssetRepresentationsAtPath(path).FirstOrDefault(a => a.name == subAssetName);
+            
             if (asset is SceneAsset)
                 return asset;
 
-            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out _, out long liif) && liif == subAssetId)
-                return asset;
-            
-            foreach (var subAsset in AssetDatabase.LoadAllAssetRepresentationsAtPath(path))
+            if (asset is GameObject gameObject)
             {
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(subAsset, out _, out liif) || liif != subAssetId)
-                    continue;
-
-                return subAsset;
+                if (typeof(Component).IsAssignableFrom(TypeRestriction))
+                {
+                    asset = gameObject.GetComponent(TypeRestriction);
+                }
             }
 
-            foreach (var subAsset in AssetDatabase.LoadAllAssetsAtPath(path))
-            {
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(subAsset, out _, out liif) || liif != subAssetId)
-                    continue;
-
-                return subAsset;
-            }
-
-            return null;
+            return TypeRestriction.IsInstanceOfType(asset) ? asset : null;
         }
     }
 }

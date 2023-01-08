@@ -10,8 +10,12 @@ namespace References
     public struct Reference<T> where T : UnityEngine.Object
     {
         [SerializeField] private string guid;
-        [SerializeField] private long subAssetId;
+        [SerializeField] private string subAsset;
         [SerializeField] private T directReference;
+        
+        internal string AssetGuid => guid;
+        internal string SubAssetName => subAsset;
+        internal T Asset => directReference;
         
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.
@@ -24,6 +28,6 @@ namespace References
         /// Show string representation.
         /// </summary>
         /// <returns></returns>
-        public readonly override string ToString() => $"{guid}[{subAssetId.ToString()}]({(directReference != null ? "direct" : "indirect")}";
+        public readonly override string ToString() => $"{guid}[{subAsset}]({(directReference != null ? "direct" : "indirect")}";
     }
 }

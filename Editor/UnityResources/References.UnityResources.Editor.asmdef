@@ -3,7 +3,7 @@
   "rootNamespace": "References.UnityResources.Editor",
   "references": [
     "GUID:1fbbf63fe778474faec3f6a33a090161",
-    "References.UnityResources",
+    "GUID:d4dfebc853cd485b863dec5638aa8961",
     "GUID:5b5579d2eebe453eabb64b5c98fed731"
   ]
 }

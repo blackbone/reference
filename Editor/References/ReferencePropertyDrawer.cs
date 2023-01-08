@@ -13,7 +13,7 @@ namespace References.Editor
     public class ReferencePropertyDrawer : ReferenceDrawer
     {
         protected override Type TypeRestriction => typeof(UnityEngine.Object);
-        protected override bool UseSubAssetIds => true;
-        protected override bool UseDirectLink => true;
+        protected override bool CanReferSubAssets => true;
+        protected override bool CanBeDirect => true;
     }
 }
