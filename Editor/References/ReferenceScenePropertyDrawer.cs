@@ -11,5 +11,7 @@ namespace References.Editor
     public sealed class ReferenceScenePropertyDrawer : ReferenceDrawer
     {
         protected override Type TypeRestriction => typeof(SceneAsset);
+        protected override bool UseSubAssetIds => false;
+        protected override bool UseDirectLink => false;
     }
 }

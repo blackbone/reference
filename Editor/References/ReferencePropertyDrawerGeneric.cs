@@ -1,4 +1,6 @@
-﻿namespace References.Editor
+﻿using UnityEngine;
+
+namespace References.Editor
 {
     using System;
     using System.Collections;

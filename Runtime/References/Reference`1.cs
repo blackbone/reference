@@ -1,25 +1,17 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace References
 {
     /// <summary>
-    /// Reference to any possible asset in project.
+    /// Typed reference for assets.
     /// </summary>
     [Serializable]
-    public struct Reference
+    public struct Reference<T> where T : UnityEngine.Object
     {
-        internal static class Names
-        {
-            public static string Guid => nameof(guid);
-            public static string SubAssetId => nameof(subAssetId);
-            public static string DirectReference => nameof(directReference);
-        }
-        
         [SerializeField] private string guid;
         [SerializeField] private long subAssetId;
-        [SerializeField] private UnityEngine.Object directReference;
+        [SerializeField] private T directReference;
         
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.
@@ -33,7 +25,5 @@ namespace References
         /// </summary>
         /// <returns></returns>
         public readonly override string ToString() => $"{guid}[{subAssetId.ToString()}]({(directReference != null ? "direct" : "indirect")}";
-
     }
-
 }
