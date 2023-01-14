@@ -90,9 +90,7 @@ namespace References.Editor
             }
             
             if (!needChangeLink && newAsset == currentAsset)
-            {
                 return;
-            }
 
             // applying changes
             if (needChangeLink)
@@ -146,7 +144,6 @@ namespace References.Editor
             // ReSharper restore PossibleNullReferenceException
             
             property.serializedObject.ApplyModifiedProperties();
-            property.serializedObject.UpdateIfRequiredOrScript();
         }
 
         private UnityEngine.Object GetEditorAsset(string guid, string subAssetName)

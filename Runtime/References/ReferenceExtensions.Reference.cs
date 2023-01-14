@@ -24,9 +24,24 @@ namespace References
                 return Task.FromResult(result);
 #endif
 
-            var assetProvider = AssetService.GetAssetProvider(reference.AssetGuid);
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No supported asset provider");
             return assetProvider.LoadAsync<UnityEngine.Object>(reference.AssetGuid, reference.SubAssetName, progress, cancellationToken);
+        }
+
+        public static void Release(
+            this in Reference reference,
+            UnityEngine.Object obj)
+        {
+            if (CheckDirectReference(reference, out var result))
+            {
+                Assert.AreEqual(result, obj);
+                return;
+            }
+            
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
+            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            assetProvider.Release(obj);
         }
     }
 }

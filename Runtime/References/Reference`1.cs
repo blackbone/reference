@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace References
 {
@@ -9,13 +10,13 @@ namespace References
     [Serializable]
     public struct Reference<T> where T : UnityEngine.Object
     {
-        [SerializeField] private string guid;
-        [SerializeField] private string subAsset;
-        [SerializeField] private T directReference;
+        [JsonProperty] [SerializeField] private string guid;
+        [JsonProperty] [SerializeField] private string subAsset;
+        [JsonIgnore] [SerializeField] private T directReference;
         
-        internal string AssetGuid => guid;
-        internal string SubAssetName => subAsset;
-        internal T Asset => directReference;
+        [JsonIgnore] internal string AssetGuid => guid;
+        [JsonIgnore] internal string SubAssetName => subAsset;
+        [JsonIgnore] internal T Asset => directReference;
         
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.

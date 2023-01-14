@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace References
@@ -9,7 +10,7 @@ namespace References
     [Serializable]
     public struct ReferenceScene
     {
-        [SerializeField] private string guid;
+        [JsonProperty] [SerializeField] private string guid;
         
         internal string AssetGuid => guid;
         

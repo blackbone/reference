@@ -11,6 +11,7 @@ using UnityEngine.Pool;
 
 namespace References.UnityResources.Editor
 {
+    [InitializeOnLoad]
     internal sealed class UnityResourcesBuildPreprocessor : IPreprocessBuildWithReport
     {
         private const string ResourceMapPath = "Assets/Resources/" + UnityResourcesAssetProvider.ResourceMapName + ".bytes";
@@ -40,6 +41,7 @@ namespace References.UnityResources.Editor
         {
             isEnabled = !isEnabled;
             Menu.SetChecked(PlayModeGenerateToggle, isEnabled);
+            EditorPrefs.SetBool(nameof(PlayModeGenerateToggle), isEnabled);
         }
         
         [MenuItem(PlayModeGenerateToggle, priority = 314, validate = true)]

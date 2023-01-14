@@ -19,9 +19,18 @@ namespace References
             Progress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
-            var assetProvider = AssetService.GetAssetProvider(reference.AssetGuid);
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No active asset service");
             return assetProvider.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken);
+        }
+
+        public static void Release(
+            this in ReferenceScene reference,
+            in Scene scene)
+        {
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
+            Assert.IsNotNull(assetProvider, "No active asset service");
+            // return assetProvider.ReleaseScene(scene);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace References
 #endif
 
     
-    public interface IAssetProvider
+    public interface IAssetProvider : IDisposable
     {
         public int Priority { get; }
         public bool CanProvideAsset(in string guid, in string subAsset = null);

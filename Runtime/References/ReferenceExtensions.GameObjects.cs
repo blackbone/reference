@@ -27,7 +27,7 @@ namespace References
 #endif
             }
 
-            var assetProvider = AssetService.GetAssetProvider(reference.AssetGuid);
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No supported asset provider");
             return assetProvider.InstantiateAsync(reference.AssetGuid, reference.SubAssetName, parent, worldPositionStays, progress, cancellationToken);
         }
@@ -50,7 +50,7 @@ namespace References
 #endif
             }
 
-            var assetProvider = AssetService.GetAssetProvider(reference.AssetGuid);
+            var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No supported asset provider");
             return assetProvider.InstantiateAsync<T>(reference.AssetGuid, reference.SubAssetName, parent, worldPositionStays, progress, cancellationToken);
         }

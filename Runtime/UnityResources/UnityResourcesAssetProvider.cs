@@ -15,7 +15,7 @@ namespace References.UnityResources
         internal const string ResourceMapName = "resource_map";
 
         [RuntimeInitializeOnLoadMethod]
-        private static void Register() => AssetService.RegisterAssetProvider(new UnityResourcesAssetProvider());
+        private static void Register() => AssetSystem.RegisterAssetProvider(new UnityResourcesAssetProvider());
 
         private readonly Dictionary<string, string> guidToResourcePath = new();
         private readonly Dictionary<string, HashSet<string>> guidToSubAssets = new();
@@ -33,7 +33,7 @@ namespace References.UnityResources
             using var ms = new MemoryStream(resourcesMappingAsset.bytes);
             using var br = new BinaryReader(ms, Encoding.UTF8);
             
-            while (ms.CanRead)
+            while (ms.Position < ms.Length)
             {
                 var guid = br.ReadString();
                 
@@ -46,6 +46,7 @@ namespace References.UnityResources
                 }
                 
                 guidToResourcePath[guid] = br.ReadString();
+                br.ReadString(); // "\r\n" line
             }
         }
 
@@ -296,6 +297,17 @@ namespace References.UnityResources
             
             progress?.Report(1f);
             return instance.GetComponent(componentType);
+        }
+
+        public void Dispose()
+        {
+            foreach (var obj in objectToResource.Keys)
+                Release(obj);
+                
+            this.counters.Clear();
+            this.objectToResource.Clear();
+            this.guidToSubAssets.Clear();
+            this.guidToResourcePath.Clear();
         }
     }
 }
