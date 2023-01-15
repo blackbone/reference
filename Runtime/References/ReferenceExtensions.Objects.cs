@@ -23,6 +23,9 @@ namespace References
 #endif
             InstantiateAsync<T>(this in Reference<T> reference, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             if (CheckDirectReference(reference, out var result))
             {
                 var instance = UnityEngine.Object.Instantiate(result);

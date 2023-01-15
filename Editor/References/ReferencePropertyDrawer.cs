@@ -2,6 +2,7 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterHidesMember
 
+using System.Reflection;
 using UnityEngine;
 
 namespace References.Editor
@@ -14,6 +15,6 @@ namespace References.Editor
     {
         protected override Type TypeRestriction => typeof(UnityEngine.Object);
         protected override bool CanReferSubAssets => true;
-        protected override bool CanBeDirect => true;
+        protected override bool CanBeDirect => fieldInfo.GetCustomAttribute(typeof(NoDirectAttribute)) == null;
     }
 }

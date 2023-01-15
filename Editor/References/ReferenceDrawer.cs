@@ -1,6 +1,7 @@
 ﻿// ReSharper disable LocalVariableHidesMember
 // ReSharper disable InconsistentNaming
 
+using System.Collections.Generic;
 using System.Linq;
 
 namespace References.Editor
@@ -11,6 +12,8 @@ namespace References.Editor
 
     public abstract class ReferenceDrawer : PropertyDrawer
     {
+        private static readonly Dictionary<(string, string), UnityEngine.Object> EditorAssetCache = new();
+
         private static readonly GUIContent LinkedContent = new(EditorGUIUtility.IconContent("d_Linked"))
         {
             tooltip = "Directly linked. Asset will be loaded immediately (and be in dependencies)."
@@ -19,7 +22,7 @@ namespace References.Editor
         {
             tooltip = "Not directly linked. Asset will be loaded through asset provider (and will not be in dependencies)."
         };
-        
+
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
             => EditorGUIUtility.singleLineHeight;
 
@@ -28,7 +31,7 @@ namespace References.Editor
         protected abstract Type TypeRestriction { get; }
         protected abstract bool CanReferSubAssets { get; }
         protected abstract bool CanBeDirect { get; }
-
+        
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // not array element - draw label
@@ -150,9 +153,12 @@ namespace References.Editor
         {
             if (string.IsNullOrEmpty(guid))
                 return null;
+
+            if (EditorAssetCache.TryGetValue((guid, subAssetName), out var asset))
+                return asset;
             
             var path = AssetDatabase.GUIDToAssetPath(guid);
-            var asset = string.IsNullOrEmpty(subAssetName)
+            asset = string.IsNullOrEmpty(subAssetName)
                 ? AssetDatabase.LoadMainAssetAtPath(path)
                 : AssetDatabase.LoadAllAssetRepresentationsAtPath(path).FirstOrDefault(a => a.name == subAssetName);
             
@@ -167,7 +173,11 @@ namespace References.Editor
                 }
             }
 
-            return TypeRestriction.IsInstanceOfType(asset) ? asset : null;
+            if (!TypeRestriction.IsInstanceOfType(asset))
+                return null;
+
+            EditorAssetCache[(guid, subAssetName)] = asset;
+            return asset;
         }
     }
 }

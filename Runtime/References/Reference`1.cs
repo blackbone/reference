@@ -22,8 +22,7 @@ namespace References
         /// Is reference valid. Checking reference consistency but not checking integrity.
         /// </summary>
         /// <returns> True if reference has valid data. </returns>
-        public bool IsValid()
-            => !string.IsNullOrEmpty(guid) && Guid.TryParse(guid, out _);
+        public readonly bool IsValid() => !string.IsNullOrEmpty(guid) && Guid.TryParse(guid, out _);
         
         /// <summary>
         /// Show string representation.

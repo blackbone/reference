@@ -17,6 +17,9 @@ namespace References
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
                 return new TaskObject(result);
@@ -33,6 +36,9 @@ namespace References
             this in Reference reference,
             UnityEngine.Object obj)
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             if (CheckDirectReference(reference, out var result))
             {
                 Assert.AreEqual(result, obj);

@@ -19,6 +19,9 @@ namespace References
             Progress<float> progress = null,
             CancellationToken cancellationToken = default)
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No active asset service");
             return assetProvider.LoadSceneAsync(reference.AssetGuid, loadSceneMode, progress, cancellationToken);
@@ -28,6 +31,9 @@ namespace References
             this in ReferenceScene reference,
             in Scene scene)
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No active asset service");
             // return assetProvider.ReleaseScene(scene);

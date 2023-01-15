@@ -30,7 +30,7 @@ namespace References
         /// Is reference valid. Checking reference consistency but not checking integrity.
         /// </summary>
         /// <returns> True if reference has valid data. </returns>
-        public bool IsValid()
+        public readonly bool IsValid()
             => !string.IsNullOrEmpty(guid) && Guid.TryParse(guid, out _) || directReference != null;
         
         /// <summary>

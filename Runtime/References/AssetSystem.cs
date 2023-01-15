@@ -1,54 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 using UnityEngine.Assertions;
 
 namespace References
 {
-    internal static class AssetSystem
+    public static class AssetSystem
     {
         private static bool isInitializedAndNotDisposed;
-        
-        private static readonly List<IAssetProvider> AssetProviders = new();
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Initialize()
+        private static readonly List<Type> AssetProviderTypes = new();
+        private static IAssetProvider[] AssetProviders;
+
+        public static void Initialize()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChanges;
+            Assert.IsFalse(isInitializedAndNotDisposed, "Already initialized!");
+
+            AssetProviders = AssetProviderTypes
+                             .Select(Activator.CreateInstance)
+                             .Cast<IAssetProvider>()
+                             .OrderBy(assetProvider => assetProvider.Priority)
+                             .ToArray();
             
-            void OnPlayModeChanges(UnityEditor.PlayModeStateChange playModeStateChange)
-            {
-                switch (playModeStateChange)
-                {
-                    case UnityEditor.PlayModeStateChange.ExitingPlayMode:
-                        Dispose();
-                        break;
-                    case UnityEditor.PlayModeStateChange.EnteredEditMode:
-                    case UnityEditor.PlayModeStateChange.ExitingEditMode:
-                    case UnityEditor.PlayModeStateChange.EnteredPlayMode:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(playModeStateChange), playModeStateChange, null);
-                }
-            }
-#else
-            Application.quitting += Dispose;
-#endif
             isInitializedAndNotDisposed = true;
         }
 
-        private static void Dispose()
+        public static void Dispose()
         {
-#if UNITY_EDITOR
-#else
-            Application.quitting -= Dispose;
-#endif
             foreach (var assetProvider in AssetProviders)
                 assetProvider.Dispose();
-            
-            AssetProviders.Clear();
-            
+
+            AssetProviders = null;
             isInitializedAndNotDisposed = false;
         }
 
@@ -63,24 +45,15 @@ namespace References
             return null;
         }
 
-        public static bool RegisterAssetProvider(in IAssetProvider assetProvider)
+        public static void RegisterAssetProvider<T>() where T : IAssetProvider, new()
         {
-            Assert.IsTrue(isInitializedAndNotDisposed, "Assets System IAssetProvider can be only registered when initialized.");
+            Assert.IsFalse(isInitializedAndNotDisposed, "Assets System IAssetProvider can be only registered when not initialized.");
             
-            if (AssetProviders.Contains(assetProvider))
-                return false;
-
-            for (var i = 0; i < AssetProviders.Count; i++)
-            {
-                if (assetProvider.Priority <= AssetProviders[0].Priority)
-                    continue;
-                
-                AssetProviders.Insert(i, assetProvider);
-                return true;
-            }
+            var assetProviderType = typeof(T);
+            if (AssetProviderTypes.Contains(assetProviderType))
+                throw new Exception();
             
-            AssetProviders.Add(assetProvider);
-            return true;
+            AssetProviderTypes.Add(assetProviderType);
         }
     }
 }

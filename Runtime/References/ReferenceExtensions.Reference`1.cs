@@ -21,6 +21,9 @@ namespace References
             LoadAsync<T>(this in Reference<T> reference, IProgress<float> progress = null, CancellationToken cancellationToken = default)
             where T : UnityEngine.Object
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+            
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
                 return new Tasks.UniTask<T>(result);
@@ -37,6 +40,9 @@ namespace References
             this in Reference<T> reference,
             T obj) where T : UnityEngine.Object
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+            
             if (CheckDirectReference(reference, out var result))
             {
                 Assert.AreEqual(result, obj);

@@ -14,7 +14,7 @@ namespace References
     
     public interface IAssetProvider : IDisposable
     {
-        public int Priority { get; }
+        public byte Priority { get; }
         public bool CanProvideAsset(in string guid, in string subAsset = null);
 
         public        

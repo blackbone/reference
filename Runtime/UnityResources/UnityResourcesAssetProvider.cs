@@ -14,17 +14,17 @@ namespace References.UnityResources
     {
         internal const string ResourceMapName = "resource_map";
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Register() => AssetSystem.RegisterAssetProvider(new UnityResourcesAssetProvider());
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void Register() => AssetSystem.RegisterAssetProvider<UnityResourcesAssetProvider>();
 
         private readonly Dictionary<string, string> guidToResourcePath = new();
         private readonly Dictionary<string, HashSet<string>> guidToSubAssets = new();
         private readonly Dictionary<string, ulong> counters = new();
         private readonly Dictionary<UnityEngine.Object, string> objectToResource = new();
 
-        public int Priority => 1000;
+        public byte Priority => 0;
 
-        private UnityResourcesAssetProvider()
+        public UnityResourcesAssetProvider()
         {
             var resourcesMappingAsset = Resources.Load<TextAsset>(ResourceMapName);
             
@@ -50,6 +50,17 @@ namespace References.UnityResources
             }
         }
 
+        public void Dispose()
+        {
+            foreach (var obj in objectToResource.Keys)
+                Release(obj);
+                
+            counters.Clear();
+            objectToResource.Clear();
+            guidToSubAssets.Clear();
+            guidToResourcePath.Clear();
+        }
+        
         public bool CanProvideAsset(in string guid, in string subAsset = null)
         {
             if (string.IsNullOrWhiteSpace(subAsset))
@@ -90,6 +101,12 @@ namespace References.UnityResources
 
         private void ReleaseInternal(UnityEngine.Object obj)
         {
+            if (obj == null)
+            {
+                Debug.LogError("Releasing \"null\" object. Potentially it was released previously.");
+                return;
+            }
+            
             if (!objectToResource.TryGetValue(obj, out var guid))
             {
                 Debug.LogError($"Can't release object {obj} because it's not linked to any resource.");
@@ -111,7 +128,7 @@ namespace References.UnityResources
 
             counters.Remove(guid);
             Resources.UnloadAsset(obj);
-            Resources.UnloadUnusedAssets();
+            //Resources.UnloadUnusedAssets();
         }
         
         public async
@@ -297,17 +314,6 @@ namespace References.UnityResources
             
             progress?.Report(1f);
             return instance.GetComponent(componentType);
-        }
-
-        public void Dispose()
-        {
-            foreach (var obj in objectToResource.Keys)
-                Release(obj);
-                
-            this.counters.Clear();
-            this.objectToResource.Clear();
-            this.guidToSubAssets.Clear();
-            this.guidToResourcePath.Clear();
         }
     }
 }

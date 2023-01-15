@@ -17,6 +17,9 @@ namespace References
     {
         public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent = null, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            if (!reference.IsValid())
+                throw new Exception("Reference is not valid!");
+
             if (CheckDirectReference(reference, out var result))
             {
                 var instance = UnityEngine.Object.Instantiate(result, parent);
