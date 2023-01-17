@@ -17,17 +17,24 @@ namespace References.UnityResources
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Register() => AssetSystem.RegisterAssetProvider<UnityResourcesAssetProvider>();
 
+        private readonly bool initialized;
         private readonly Dictionary<string, string> guidToResourcePath = new();
         private readonly Dictionary<string, HashSet<string>> guidToSubAssets = new();
         private readonly Dictionary<string, ulong> counters = new();
         private readonly Dictionary<UnityEngine.Object, string> objectToResource = new();
 
-        public byte Priority => 0;
+        public byte Priority => 200; // resources has high priority of all
 
         public UnityResourcesAssetProvider()
         {
             var resourcesMappingAsset = Resources.Load<TextAsset>(ResourceMapName);
-            
+
+            if (resourcesMappingAsset == null)
+            {
+                Debug.LogError($"Failed to initialize {nameof(UnityResourcesAssetProvider)}. No Resource Map asset found. Provider will not work properly.");
+                return;
+            }
+
             Assert.IsNotNull(resourcesMappingAsset);
 
             using var ms = new MemoryStream(resourcesMappingAsset.bytes);
@@ -48,6 +55,8 @@ namespace References.UnityResources
                 guidToResourcePath[guid] = br.ReadString();
                 br.ReadString(); // "\r\n" line
             }
+
+            initialized = true;
         }
 
         public void Dispose()
@@ -63,6 +72,9 @@ namespace References.UnityResources
         
         public bool CanProvideAsset(in string guid, in string subAsset = null)
         {
+            if (!initialized)
+                return false;
+            
             if (string.IsNullOrWhiteSpace(subAsset))
                 return guidToResourcePath.ContainsKey(guid);
 
@@ -79,15 +91,28 @@ namespace References.UnityResources
 #endif
             LoadSceneAsync(string guid, LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return default;
+            }
+            
             if (!guidToResourcePath.TryGetValue(guid, out var sceneName))
                 throw new InvalidDataException();
 
-            await SceneManager.LoadSceneAsync(sceneName, loadSceneMode).ToUniTask(progress, cancellationToken: cancellationToken);
+            var op = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
+            await op.ToUniTask(progress, cancellationToken: cancellationToken);
             return SceneManager.GetSceneByName(sceneName);
         }
 
         public void Release(UnityEngine.Object obj)
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return;
+            }
+
             switch (obj)
             {
                 case Component component:
@@ -101,6 +126,12 @@ namespace References.UnityResources
 
         private void ReleaseInternal(UnityEngine.Object obj)
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return;
+            }
+            
             if (obj == null)
             {
                 Debug.LogError("Releasing \"null\" object. Potentially it was released previously.");
@@ -128,7 +159,6 @@ namespace References.UnityResources
 
             counters.Remove(guid);
             Resources.UnloadAsset(obj);
-            //Resources.UnloadUnusedAssets();
         }
         
         public async
@@ -139,6 +169,12 @@ namespace References.UnityResources
 #endif
             LoadAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return default;
+            }
+            
             var type = typeof(T);
             Type loadType = null;
             
@@ -199,6 +235,12 @@ namespace References.UnityResources
 #endif
             InstantiateAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return default;
+            }
+            
             if (typeof(T) == typeof(GameObject))
                 return await InstantiateAsync(guid, subAsset, progress: progress, cancellationToken: cancellationToken) as T;
             
@@ -228,6 +270,12 @@ namespace References.UnityResources
 
         public async UniTask<GameObject> InstantiateAsync(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return default;
+            }
+            
             const float loadWeight = .9f;
             const float instantiateWeight = 1f - loadWeight;
 
@@ -277,6 +325,12 @@ namespace References.UnityResources
 #endif
             InstantiateComponentAsync(Type componentType, string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            if (!initialized)
+            {
+                Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
+                return default;
+            }
+            
             const float loadWeight = .9f;
             const float instantiateWeight = 1f - loadWeight;
 

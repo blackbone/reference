@@ -1,0 +1,15 @@
+{
+  "name": "References.EditorAssetProvider",
+  "rootNamespace": "References.EditorAssetProvider",
+  "references": [
+    "GUID:f51ebe6a0ceec4240a699833d6309b23",
+    "GUID:1fbbf63fe778474faec3f6a33a090161"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.cysharp.unitask",
+      "expression": "",
+      "define": "UNITASK"
+    }
+  ]
+}

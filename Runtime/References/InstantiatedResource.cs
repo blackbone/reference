@@ -2,7 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace References.UnityResources
+namespace References
 {
     internal sealed class InstantiatedResource : MonoBehaviour
     {

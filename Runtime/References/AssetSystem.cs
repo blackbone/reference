@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace References
@@ -19,7 +20,7 @@ namespace References
             AssetProviders = AssetProviderTypes
                              .Select(Activator.CreateInstance)
                              .Cast<IAssetProvider>()
-                             .OrderBy(assetProvider => assetProvider.Priority)
+                             .OrderByDescending(assetProvider => assetProvider.Priority)
                              .ToArray();
             
             isInitializedAndNotDisposed = true;
@@ -30,6 +31,7 @@ namespace References
             foreach (var assetProvider in AssetProviders)
                 assetProvider.Dispose();
 
+            AssetProviderTypes.Clear();
             AssetProviders = null;
             isInitializedAndNotDisposed = false;
         }
@@ -51,7 +53,10 @@ namespace References
             
             var assetProviderType = typeof(T);
             if (AssetProviderTypes.Contains(assetProviderType))
-                throw new Exception();
+            {
+                Debug.LogError($"Asset Provider type {assetProviderType.FullName} already registered.");
+                return;
+            }
             
             AssetProviderTypes.Add(assetProviderType);
         }
