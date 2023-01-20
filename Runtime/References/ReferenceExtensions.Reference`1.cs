@@ -26,9 +26,9 @@ namespace References
             
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new Tasks.UniTask<T>(result);
+                return Tasks.UniTask.FromResult(result);
 #else
-                return Task.FromResult(result);
+                return Tasks.Task.FromResult(result);
 #endif
             
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);

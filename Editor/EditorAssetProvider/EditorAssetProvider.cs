@@ -12,6 +12,12 @@ using UnityEngine.Scripting;
 
 namespace References.EditorAssetProvider
 {
+#if UNITASK
+    using Tasks = Cysharp.Threading.Tasks;
+#else
+    using Tasks = System.Threading.Tasks;
+#endif
+    
     [Preserve]
     internal sealed class EditorAssetProvider : IAssetProvider
     {
@@ -63,9 +69,9 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            UniTask<Scene>
+            Tasks.UniTask<Scene>
 #else
-            Task<Scene>
+            Tasks.Task<Scene>
 #endif
             LoadSceneAsync(string guid, LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
@@ -80,9 +86,9 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             LoadAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -114,9 +120,9 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             InstantiateAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -149,9 +155,9 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            UniTask<GameObject>
+            Tasks.UniTask<GameObject>
 #else
-            Task<GameObject>
+            Tasks.Task<GameObject>
 #endif
             InstantiateAsync(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
@@ -227,18 +233,18 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             InstantiateAsync<T>(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
             => await InstantiateComponentAsync(typeof(T), guid, subAsset, parent, worldPositionStays, progress, cancellationToken) as T;
 
         private async
 #if UNITASK
-            UniTask<UnityEngine.Object>
+            Tasks.UniTask<UnityEngine.Object>
 #else
-            Task<UnityEngine.Object>
+            Tasks.Task<UnityEngine.Object>
 #endif
             InstantiateComponentAsync(Type componentType, string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {

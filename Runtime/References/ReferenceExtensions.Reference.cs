@@ -5,14 +5,20 @@ using NUnit.Framework;
 namespace References
 {
 #if UNITASK
-    using TaskObject = Cysharp.Threading.Tasks.UniTask<UnityEngine.Object>;
+    using Tasks = Cysharp.Threading.Tasks;
 #else
-    using TaskObject = System.Threading.Tasks.Task<UnityEngine.Object>;
+    using Tasks = System.Threading.Tasks;
 #endif
     
     public static partial class ReferenceExtensions
     {
-        public static TaskObject LoadAsync(
+        public static 
+#if UNITASK
+            Tasks.UniTask<UnityEngine.Object>
+#else
+            Tasks.Task<UnityEngine.Object>
+#endif
+            LoadAsync(
             this in Reference reference,
             IProgress<float> progress = null,
             CancellationToken cancellationToken = default)
@@ -22,9 +28,9 @@ namespace References
 
             if (CheckDirectReference(reference, out var result))
 #if UNITASK
-                return new TaskObject(result);
+                return Tasks.UniTask.FromResult(result);
 #else
-                return Task.FromResult(result);
+                return Tasks.Task.FromResult(result);
 #endif
 
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);

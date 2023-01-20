@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
 namespace References.UnityResources
 {
+#if UNITASK
+    using Cysharp.Threading.Tasks;
+    using Tasks = Cysharp.Threading.Tasks;
+#else
+    using Tasks = System.Threading.Tasks;
+#endif
+    
     internal sealed class UnityResourcesAssetProvider : IAssetProvider
     {
         internal const string ResourceMapName = "resource_map";
@@ -85,9 +91,9 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            UniTask<Scene>
+            Tasks.UniTask<Scene>
 #else
-            Task<Scene>
+            Tasks.Task<Scene>
 #endif
             LoadSceneAsync(string guid, LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
@@ -163,9 +169,9 @@ namespace References.UnityResources
         
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             LoadAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -229,9 +235,9 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             InstantiateAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -268,7 +274,13 @@ namespace References.UnityResources
             return instance;
         }
 
-        public async UniTask<GameObject> InstantiateAsync(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        public async
+#if UNITASK
+            Tasks.UniTask<GameObject>
+#else
+            Tasks.Task<GameObject>
+#endif
+            InstantiateAsync(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             if (!initialized)
             {
@@ -310,18 +322,18 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            UniTask<T>
+            Tasks.UniTask<T>
 #else
-            Task<T>
+            Tasks.Task<T>
 #endif
             InstantiateAsync<T>(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
             => await InstantiateComponentAsync(typeof(T), guid, subAsset, parent, worldPositionStays, progress, cancellationToken) as T;
 
         private async
 #if UNITASK
-            UniTask<UnityEngine.Object>
+            Tasks.UniTask<UnityEngine.Object>
 #else
-            Task<UnityEngine.Object>
+            Tasks.Task<UnityEngine.Object>
 #endif
             InstantiateComponentAsync(Type componentType, string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
