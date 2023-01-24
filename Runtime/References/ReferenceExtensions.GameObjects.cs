@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using NUnit.Framework;
+using UnityEngine.Assertions;
 using UnityEngine;
 
 namespace References
