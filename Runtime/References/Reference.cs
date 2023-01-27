@@ -23,9 +23,16 @@ namespace References
         [JsonIgnore] [SerializeField] private UnityEngine.Object directReference;
 
         [JsonIgnore] internal string AssetGuid => guid;
-        [JsonIgnore] internal string SubAssetName => subAsset;
+        [JsonIgnore] internal string SubAsset => subAsset;
         [JsonIgnore] internal UnityEngine.Object Asset => directReference;
-        
+
+        public Reference(string guid, string subAsset = null, UnityEngine.Object directReference = null)
+        {
+            this.guid = guid;
+            this.subAsset = subAsset;
+            this.directReference = directReference;
+        }
+
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.
         /// </summary>
@@ -38,7 +45,5 @@ namespace References
         /// </summary>
         /// <returns></returns>
         public readonly override string ToString() => $"{guid}[{subAsset}]({(directReference != null ? "direct" : "indirect")}";
-
     }
-
 }

@@ -8,7 +8,9 @@ namespace References
     {
         internal GameObject Original;
         internal Action<GameObject> ReleaseCallback;
-        public InstantiatedResource() => hideFlags = HideFlags.NotEditable | HideFlags.DontSave;
+        
+        private void Awake() => hideFlags = HideFlags.NotEditable | HideFlags.DontSave;
+
         private void OnDestroy()
         {
             Assert.IsNotNull(Original);

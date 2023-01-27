@@ -13,18 +13,15 @@ using UnityEngine.Scripting;
 namespace References.EditorAssetProvider
 {
 #if UNITASK
-    using Tasks = Cysharp.Threading.Tasks;
 #else
     using Tasks = System.Threading.Tasks;
 #endif
-    
+
     [Preserve]
     internal sealed class EditorAssetProvider : IAssetProvider
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Register() => AssetSystem.RegisterAssetProvider<EditorAssetProvider>();
-
         private readonly Dictionary<UnityEngine.Object, ulong> objectCounters = new();
+        private bool isDisposed;
         private uint loads = 0;
         private uint releases = 0;
 
@@ -32,30 +29,45 @@ namespace References.EditorAssetProvider
 
         public void Dispose()
         {
-            var report = new StringBuilder($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.cyan)}>Editor Asset usage Report</color> ({loads.ToString()} / {releases.ToString()}):\n");
-            
+            ThrowIfDisposed();
+
+            string color;
             if (objectCounters == null || objectCounters.Count == 0)
-                report.AppendLine($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>All clear!</color>");
+                color = ColorUtility.ToHtmlStringRGBA(Color.green);
+            else if (objectCounters.All(kv => kv.Value == 0))
+                color = ColorUtility.ToHtmlStringRGBA(Color.yellow);
+            else 
+                color = ColorUtility.ToHtmlStringRGBA(Color.red);
+            
+            var report = new StringBuilder($"<color=#{color}>Editor Asset usage Report</color> ({loads.ToString()} / {releases.ToString()}):\n");
+
+            if (objectCounters == null || objectCounters.Count == 0)
+            {
+                report.AppendLine($"<color=#{color}>All clear!</color>");
+            }
             else if (objectCounters.All(kv => kv.Value == 0))
             {
-                report.AppendLine($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>No references, but objects not cleared:</color>");
+                report.AppendLine($"<color=#{color}>No references, but objects not cleared:</color>");
                 foreach (var obj in objectCounters.Keys)
-                    report.AppendLine($"\t{obj.name}{obj}");
-
+                    report.AppendLine($"    {obj.name}{obj}");
             }
             else
             {
-                report.AppendLine($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>Some objects not cleared:</color>");
+                report.AppendLine($"<color=#{color}>Some objects not cleared:</color>");
                 foreach (var kv in objectCounters)
-                    report.AppendLine($"\t{kv.Key.name}{kv.Key} => {kv.Value.ToString()} references not cleared.");
+                    report.AppendLine($"    {kv.Key.name}{kv.Key}: {kv.Value.ToString()} references not cleared.");
             }
+
             Debug.Log(report.ToString());
             objectCounters?.Clear();
             Resources.UnloadUnusedAssets();
+            isDisposed = true;
         }
 
         public bool CanProvideAsset(in string guid, in string subAsset = null)
         {
+            ThrowIfDisposed();
+
             var assetPath = AssetDatabase.GUIDToAssetPath(guid);
             if (string.IsNullOrEmpty(assetPath))
                 return false;
@@ -69,12 +81,14 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            Tasks.UniTask<Scene>
+            UniTask<Scene>
 #else
             Tasks.Task<Scene>
 #endif
             LoadSceneAsync(string guid, LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            ThrowIfDisposed();
+
             var assetPath = AssetDatabase.GUIDToAssetPath(guid);
             if (string.IsNullOrEmpty(assetPath))
                 throw new Exception($"Can't find asset with guid {guid} in project.");
@@ -86,12 +100,14 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
             LoadAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            ThrowIfDisposed();
+
             var assetPath = AssetDatabase.GUIDToAssetPath(guid);
             if (string.IsNullOrEmpty(assetPath))
                 throw new Exception($"Can't find asset with guid {guid} in project.");
@@ -120,12 +136,14 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
             InstantiateAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
+            ThrowIfDisposed();
+
             if (typeof(T) == typeof(GameObject))
                 return await InstantiateAsync(guid, subAsset, progress: progress, cancellationToken: cancellationToken) as T;
 
@@ -155,12 +173,14 @@ namespace References.EditorAssetProvider
 
         public async
 #if UNITASK
-            Tasks.UniTask<GameObject>
+            UniTask<GameObject>
 #else
             Tasks.Task<GameObject>
 #endif
             InstantiateAsync(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            ThrowIfDisposed();
+
             const float loadWeight = .9f;
             const float instantiateWeight = 1f - loadWeight;
 
@@ -192,8 +212,11 @@ namespace References.EditorAssetProvider
             progress?.Report(1f);
             return instance;
         }
+
         public void Release(UnityEngine.Object obj)
         {
+            ThrowIfDisposed();
+
             switch (obj)
             {
                 case Component component:
@@ -205,6 +228,30 @@ namespace References.EditorAssetProvider
             }
         }
 
+        public async
+#if UNITASK
+            UniTask<T>
+#else
+            Tasks.Task<T>
+#endif
+            InstantiateAsync<T>(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
+        {
+            ThrowIfDisposed();
+
+            return await InstantiateComponentAsync(typeof(T), guid, subAsset, parent, worldPositionStays, progress, cancellationToken) as T;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+        private static void Register() => AssetSystem.RegisterAssetProvider<EditorAssetProvider>();
+
+        private void ThrowIfDisposed()
+        {
+            if (!isDisposed)
+                return;
+
+            throw new ObjectDisposedException($"{this} has been already disposed");
+        }
+
         private void ReleaseInternal(UnityEngine.Object obj)
         {
             if (obj == null)
@@ -212,13 +259,13 @@ namespace References.EditorAssetProvider
                 Debug.LogError("Releasing \"null\" object. Potentially it was released previously.");
                 return;
             }
-            
+
             if (!objectCounters.TryGetValue(obj, out var counter))
             {
-                Debug.LogError($"Can't release object {obj} because ref count is zero - it's possible leak!");
+                Debug.LogWarning($"Releasing object {obj} with ref count is zero - it's possible leak or object disposition after cleaning context!");
                 return;
             }
-            
+
             --counter;
             releases++;
             if (counter > 0)
@@ -228,21 +275,22 @@ namespace References.EditorAssetProvider
             }
 
             objectCounters.Remove(obj);
-            Resources.UnloadAsset(obj);
+            switch (obj)
+            {
+                case GameObject:
+                case Component:
+                case AssetBundle:
+                    Resources.UnloadUnusedAssets();
+                    break;
+                default:
+                    Resources.UnloadAsset(obj);
+                    break;
+            }
         }
-
-        public async
-#if UNITASK
-            Tasks.UniTask<T>
-#else
-            Tasks.Task<T>
-#endif
-            InstantiateAsync<T>(string guid, string subAsset, Transform parent = null, bool worldPositionStays = false, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
-            => await InstantiateComponentAsync(typeof(T), guid, subAsset, parent, worldPositionStays, progress, cancellationToken) as T;
 
         private async
 #if UNITASK
-            Tasks.UniTask<UnityEngine.Object>
+            UniTask<UnityEngine.Object>
 #else
             Tasks.Task<UnityEngine.Object>
 #endif

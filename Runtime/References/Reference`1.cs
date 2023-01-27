@@ -17,6 +17,13 @@ namespace References
         [JsonIgnore] internal string AssetGuid => guid;
         [JsonIgnore] internal string SubAssetName => subAsset;
         [JsonIgnore] internal T Asset => directReference;
+
+        public Reference(string guid, string subAsset = null, T directReference = null)
+        {
+            this.guid = guid;
+            this.subAsset = subAsset;
+            this.directReference = directReference;
+        }
         
         /// <summary>
         /// Is reference valid. Checking reference consistency but not checking integrity.
@@ -29,5 +36,11 @@ namespace References
         /// </summary>
         /// <returns></returns>
         public readonly override string ToString() => $"{guid}[{subAsset}]({(directReference != null ? "direct" : "indirect")}";
+
+        public static implicit operator Reference(in Reference<T> reference)
+            => new(reference.guid, reference.subAsset, reference.directReference);
+        
+        public static implicit operator Reference<T>(in Reference reference)
+            => new(reference.AssetGuid, reference.SubAsset, reference.Asset as T);
     }
 }

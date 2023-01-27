@@ -35,7 +35,7 @@ namespace References
 
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
             Assert.IsNotNull(assetProvider, "No supported asset provider");
-            return assetProvider.LoadAsync<UnityEngine.Object>(reference.AssetGuid, reference.SubAssetName, progress, cancellationToken);
+            return assetProvider.LoadAsync<UnityEngine.Object>(reference.AssetGuid, reference.SubAsset, progress, cancellationToken);
         }
 
         public static void Release(
