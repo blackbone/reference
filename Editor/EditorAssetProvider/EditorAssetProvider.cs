@@ -241,9 +241,6 @@ namespace References.EditorAssetProvider
             return await InstantiateComponentAsync(typeof(T), guid, subAsset, parent, worldPositionStays, progress, cancellationToken) as T;
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Register() => AssetSystem.RegisterAssetProvider<EditorAssetProvider>();
-
         private void ThrowIfDisposed()
         {
             if (!isDisposed)
