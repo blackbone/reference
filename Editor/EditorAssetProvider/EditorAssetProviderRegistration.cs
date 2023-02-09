@@ -20,6 +20,13 @@ namespace References.EditorAssetProvider
                 return;
             
             AssetSystem.RegisterAssetProvider<EditorAssetProvider>();
+            Application.quitting += OnApplicationQuit;
+        }
+
+        private static void OnApplicationQuit()
+        {
+            Application.quitting -= OnApplicationQuit;
+            AssetSystem.UnregisterAssetProvider<EditorAssetProvider>();
         }
 
         [MenuItem("Tools/Asset Providers/Editor/Enable")]

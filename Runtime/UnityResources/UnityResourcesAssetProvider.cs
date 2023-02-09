@@ -20,9 +20,6 @@ namespace References.UnityResources
     {
         internal const string ResourceMapName = "resource_map";
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Register() => AssetSystem.RegisterAssetProvider<UnityResourcesAssetProvider>();
-
         private readonly bool initialized;
         private readonly Dictionary<string, string> guidToResourcePath = new();
         private readonly Dictionary<string, HashSet<string>> guidToSubAssets = new();
