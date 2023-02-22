@@ -2,8 +2,8 @@
     "name": "References.Editor",
     "rootNamespace": "References.Editor",
     "references": [
-        "GUID:1fbbf63fe778474faec3f6a33a090161",
-        "GUID:84651a3751eca9349aac36a66bba901b"
+        "Unity.ResourceManager",
+        "References"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,12 +14,5 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.addressables",
-            "expression": "",
-            "define": "ADDRESSABLES"
-        }
-    ],
     "noEngineReferences": false
 }
