@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -11,11 +10,11 @@ namespace References.UnityResources
 {
 #if UNITASK
     using Cysharp.Threading.Tasks;
-    using Tasks = Cysharp.Threading.Tasks;
 #else
     using Tasks = System.Threading.Tasks;
+    // TODO [Dmitrii Osipov] non unitask api
 #endif
-    
+
     internal sealed class UnityResourcesAssetProvider : IAssetProvider
     {
         internal const string ResourceMapName = "resource_map";
@@ -30,6 +29,8 @@ namespace References.UnityResources
 
         public UnityResourcesAssetProvider()
         {
+            Debug.Log(nameof(UnityResourcesAssetProvider));
+
             var resourcesMappingAsset = Resources.Load<TextAsset>(ResourceMapName);
 
             if (resourcesMappingAsset == null)
@@ -40,23 +41,21 @@ namespace References.UnityResources
 
             Assert.IsNotNull(resourcesMappingAsset);
 
-            using var ms = new MemoryStream(resourcesMappingAsset.bytes);
-            using var br = new BinaryReader(ms, Encoding.UTF8);
-            
-            while (ms.Position < ms.Length)
+            using var sr = new StringReader(resourcesMappingAsset.text);
+            var line = sr.ReadLine();
+            while (!string.IsNullOrEmpty(line))
             {
-                var guid = br.ReadString();
-                
-                var subAssetsCount = br.ReadInt32();
-                if (subAssetsCount > 0)
+                var split = line.Split('~');
+                guidToResourcePath[split[0]] = split[1];
+                var count = int.Parse(split[2]);
+                if (count > 0)
                 {
-                    guidToSubAssets[guid] = new HashSet<string>(subAssetsCount);
-                    for (var i = 0; i < subAssetsCount; i++)
-                        guidToSubAssets[guid].Add(br.ReadString());
+                    guidToSubAssets[split[0]] = new HashSet<string>(count);
+                    for (var i = 3; i < count + 3; i++)
+                        guidToSubAssets[split[0]].Add(split[i]);
                 }
                 
-                guidToResourcePath[guid] = br.ReadString();
-                br.ReadString(); // "\r\n" line
+                line = sr.ReadLine();
             }
 
             initialized = true;
@@ -66,18 +65,18 @@ namespace References.UnityResources
         {
             foreach (var obj in objectToResource.Keys)
                 Release(obj);
-                
+
             counters.Clear();
             objectToResource.Clear();
             guidToSubAssets.Clear();
             guidToResourcePath.Clear();
         }
-        
+
         public bool CanProvideAsset(in string guid, in string subAsset = null)
         {
             if (!initialized)
                 return false;
-            
+
             if (string.IsNullOrWhiteSpace(subAsset))
                 return guidToResourcePath.ContainsKey(guid);
 
@@ -88,7 +87,7 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            Tasks.UniTask<Scene>
+            UniTask<Scene>
 #else
             Tasks.Task<Scene>
 #endif
@@ -99,7 +98,7 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return default;
             }
-            
+
             if (!guidToResourcePath.TryGetValue(guid, out var sceneName))
                 throw new InvalidDataException();
 
@@ -134,13 +133,13 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return;
             }
-            
+
             if (obj == null)
             {
                 Debug.LogError("Releasing \"null\" object. Potentially it was released previously.");
                 return;
             }
-            
+
             if (!objectToResource.TryGetValue(obj, out var guid))
             {
                 Debug.LogError($"Can't release object {obj} because it's not linked to any resource.");
@@ -152,7 +151,7 @@ namespace References.UnityResources
                 Debug.LogError($"Can't release object {obj} because ref count is zero - it's possible leak!");
                 return;
             }
-            
+
             --counter;
             if (counter > 0)
             {
@@ -161,12 +160,28 @@ namespace References.UnityResources
             }
 
             counters.Remove(guid);
+            switch (obj)
+            {
+                // because can't use direct unload - will try to destroy loaded from resources prefab (idk if it secure and won't break game)
+                case GameObject gameObject:
+                    UnityEngine.Object.Destroy(gameObject);
+                    break;
+                
+                case Component component:
+                    UnityEngine.Object.Destroy(component.gameObject);
+                    break;
+                
+                case AssetBundle assetBundle:
+                    assetBundle.Unload(true);
+                    return;
+            }
+            
             Resources.UnloadAsset(obj);
         }
-        
+
         public async
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -177,21 +192,21 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return default;
             }
-            
+
             var type = typeof(T);
             Type loadType = null;
-            
+
             if (typeof(Component).IsAssignableFrom(type))
                 loadType = typeof(GameObject);
 
             if (!guidToResourcePath.TryGetValue(guid, out var resourcePath))
                 throw new InvalidDataException($"Can't find mapping for {guid}");
-            
+
             if (!string.IsNullOrEmpty(subAsset) && !(guidToSubAssets.TryGetValue(guid, out var subAssets) && !subAssets.Contains(subAsset)))
                 throw new InvalidDataException($"Can't find mapping for {guid}[{subAsset}]");
 
             var op = Resources.LoadAsync(resourcePath, loadType ?? type);
-            await op.ToUniTask(progress: progress, cancellationToken: cancellationToken);
+            await op.ToUniTask(progress, cancellationToken: cancellationToken);
             if (op.asset == null)
             {
                 Debug.LogError($"Unable to load asset of type ({(loadType ?? type).Name}) from location {guid}[{subAsset}]");
@@ -224,7 +239,7 @@ namespace References.UnityResources
                 counters[guid] = counter + 1;
                 return result;
             }
-            
+
             Debug.LogError($"Unable to load asset of type (GameObject) from location {guid}[{subAsset}]");
             Release(op.asset);
             return default;
@@ -232,7 +247,7 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -243,13 +258,13 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return default;
             }
-            
+
             if (typeof(T) == typeof(GameObject))
                 return await InstantiateAsync(guid, subAsset, progress: progress, cancellationToken: cancellationToken) as T;
-            
+
             if (typeof(Component).IsAssignableFrom(typeof(T)))
                 return await InstantiateComponentAsync(typeof(T), guid, subAsset, null, false, progress, cancellationToken) as T;
-            
+
             const float loadWeight = .95f;
 
             IProgress<float> loadProgress = null;
@@ -258,14 +273,14 @@ namespace References.UnityResources
 
             var asset = await LoadAsync<T>(guid, subAsset, loadProgress, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             if (asset == null)
             {
                 Debug.LogError("FFFUUU!!!");
                 Release(asset);
                 return default;
             }
-            
+
             var instance = UnityEngine.Object.Instantiate(asset);
             progress?.Report(1f);
             return instance;
@@ -273,7 +288,7 @@ namespace References.UnityResources
 
         public async
 #if UNITASK
-            Tasks.UniTask<GameObject>
+            UniTask<GameObject>
 #else
             Tasks.Task<GameObject>
 #endif
@@ -284,7 +299,7 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return default;
             }
-            
+
             const float loadWeight = .9f;
             const float instantiateWeight = 1f - loadWeight;
 
@@ -298,28 +313,28 @@ namespace References.UnityResources
 
             var asset = await LoadAsync<GameObject>(guid, subAsset, loadProgress, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             if (asset == null)
             {
                 Debug.LogError("FFFUUU!!!");
                 Release(asset);
                 return default;
             }
-            
+
             instantiateProgress?.Report(0);
             var instance = UnityEngine.Object.Instantiate(asset);
             instantiateProgress?.Report(.5f);
             var instantiatedResource = instance.AddComponent<InstantiatedResource>();
             instantiatedResource.Original = asset;
             instantiatedResource.ReleaseCallback = ReleaseInternal;
-            
+
             progress?.Report(1f);
             return instance;
         }
 
         public async
 #if UNITASK
-            Tasks.UniTask<T>
+            UniTask<T>
 #else
             Tasks.Task<T>
 #endif
@@ -328,7 +343,7 @@ namespace References.UnityResources
 
         private async
 #if UNITASK
-            Tasks.UniTask<UnityEngine.Object>
+            UniTask<UnityEngine.Object>
 #else
             Tasks.Task<UnityEngine.Object>
 #endif
@@ -339,7 +354,7 @@ namespace References.UnityResources
                 Debug.LogError($"{nameof(UnityResourcesAssetProvider)} not initialized.");
                 return default;
             }
-            
+
             const float loadWeight = .9f;
             const float instantiateWeight = 1f - loadWeight;
 
@@ -353,28 +368,28 @@ namespace References.UnityResources
 
             var asset = await LoadAsync<GameObject>(guid, subAsset, loadProgress, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             if (asset == null)
             {
                 Debug.LogError("FFFUUU!!! Can't load");
                 Release(asset);
                 return default;
             }
-            
+
             if (asset.GetComponent(componentType) == null)
             {
                 Debug.LogError("FFFUUU!!! no component");
                 Release(asset);
                 return default;
             }
-            
+
             instantiateProgress?.Report(0);
             var instance = UnityEngine.Object.Instantiate(asset, parent, worldPositionStays);
             instantiateProgress?.Report(.5f);
             var instantiatedResource = instance.AddComponent<InstantiatedResource>();
             instantiatedResource.Original = asset;
             instantiatedResource.ReleaseCallback = ReleaseInternal;
-            
+
             progress?.Report(1f);
             return instance.GetComponent(componentType);
         }

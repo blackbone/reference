@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="Reference.Addressables" preserve="all">
+    <type fullname="Reference.Addressables.AddressablesAssetProviderRegistration" preserve="all" />
+  </assembly>
+</linker>

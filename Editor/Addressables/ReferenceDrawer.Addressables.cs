@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if ADDRESSABLES
+using UnityEditor;
 using UnityEngine;
 
 namespace References.Editor
@@ -34,3 +35,4 @@ namespace References.Editor
         }
     }
 }
+#endif

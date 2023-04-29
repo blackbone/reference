@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="References.UnityResources" preserve="all">
+    <type fullname="References.UnityResources.UnityResourcesAssetProviderRegistration" preserve="all" />
+  </assembly>
+</linker>

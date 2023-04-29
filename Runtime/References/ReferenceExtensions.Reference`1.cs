@@ -32,7 +32,7 @@ namespace References
 #endif
             
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
-            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            Assert.IsNotNull(assetProvider, $"No supported asset provider for {reference.ToString()}");
             return assetProvider.LoadAsync<T>(reference.AssetGuid, reference.SubAssetName, progress, cancellationToken);
         }
         
@@ -50,7 +50,7 @@ namespace References
             }
             
             var assetProvider = AssetSystem.GetAssetProvider(reference.AssetGuid);
-            Assert.IsNotNull(assetProvider, "No supported asset provider");
+            Assert.IsNotNull(assetProvider, $"No supported asset provider for {reference.ToString()}");
             assetProvider.Release(obj);
         }
     }

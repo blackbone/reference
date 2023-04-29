@@ -1,21 +1,21 @@
 using UnityEngine;
 
-namespace References.UnityResources
+namespace References.Addressables
 {
-    internal static class UnityResourcesAssetProviderRegistration
+    internal static class AddressablesAssetProviderRegistration
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Register()
         {
-            Debug.Log($"Registering {nameof(UnityResourcesAssetProvider)}");
-            AssetSystem.RegisterAssetProvider<UnityResourcesAssetProvider>();
+            Debug.Log($"Registering {nameof(AddressablesAssetProvider)}");
+            AssetSystem.RegisterAssetProvider<AddressablesAssetProvider>();
             Application.quitting += OnApplicationQuit;
         }
 
         private static void OnApplicationQuit()
         {
             Application.quitting -= OnApplicationQuit;
-            AssetSystem.UnregisterAssetProvider<UnityResourcesAssetProvider>();
+            AssetSystem.UnregisterAssetProvider<AddressablesAssetProvider>();
         }
     }
 }

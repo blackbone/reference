@@ -11,16 +11,16 @@ using UnityEngine.Pool;
 
 namespace References.UnityResources.Editor
 {
-    [InitializeOnLoad]
     internal sealed class UnityResourcesBuildPreprocessor : IPreprocessBuildWithReport
     {
         private const string ResourceMapPath = "Assets/Resources/" + UnityResourcesAssetProvider.ResourceMapName + ".bytes";
-        private const string PlayModeGenerateToggle = "Assets/References/Generate Resource Map on Play Mode";
+        private const string PlayModeGenerateToggleMenuName = "Assets/References/Generate Resource Map on Play Mode";
+        private const string GenerateResourceMapMenuName = "Assets/References/Generate Resource Map";
         private static bool isEnabled;
 
         static UnityResourcesBuildPreprocessor()
         {
-            isEnabled = EditorPrefs.GetBool(nameof(PlayModeGenerateToggle));
+            isEnabled = EditorPrefs.GetBool(nameof(UnityResourcesBuildPreprocessor) + nameof(isEnabled));
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
@@ -36,46 +36,29 @@ namespace References.UnityResources.Editor
 
         public void OnPreprocessBuild(BuildReport report) => GenerateResourceMap();
         
-        [MenuItem(PlayModeGenerateToggle, priority = 314)]
+        [MenuItem(PlayModeGenerateToggleMenuName, priority = 314)]
         private static void EnableEditorMapGeneration()
         {
             isEnabled = !isEnabled;
-            Menu.SetChecked(PlayModeGenerateToggle, isEnabled);
-            EditorPrefs.SetBool(nameof(PlayModeGenerateToggle), isEnabled);
+            Menu.SetChecked(PlayModeGenerateToggleMenuName, isEnabled);
+            EditorPrefs.SetBool(nameof(PlayModeGenerateToggleMenuName), isEnabled);
         }
         
-        [MenuItem(PlayModeGenerateToggle, priority = 314, validate = true)]
+        [MenuItem(PlayModeGenerateToggleMenuName, priority = 314, validate = true)]
         private static bool EnableEditorMapGenerationValidate()
         {
-            Menu.SetChecked(PlayModeGenerateToggle, isEnabled);
+            Menu.SetChecked(PlayModeGenerateToggleMenuName, isEnabled);
             return true;
         }
 
-        [MenuItem("Assets/References/Generate Resource Map", priority = 314)]
+        [MenuItem(GenerateResourceMapMenuName, priority = 314)]
         private static void GenerateResourceMap()
         {
-            using var fs = new FileStream(ResourceMapPath, FileMode.Create);
-            using var bw = new BinaryWriter(fs, Encoding.UTF8);
-
+            var sb = new StringBuilder();
             foreach (var resourceInfo in GetResourceRepresentations())
-            {
-                bw.Write(resourceInfo.Guid);
-                
-                if (resourceInfo.SubAssetNames != null)
-                {
-                    bw.Write(resourceInfo.SubAssetNames.Length);
-                    foreach (var subAssetName in resourceInfo.SubAssetNames)
-                        bw.Write(subAssetName);
-                }
-                else
-                    bw.Write(0);
+                sb.AppendLine(resourceInfo.ToString());
 
-                bw.Write(resourceInfo.ResourcePath);
-                bw.Write("\r\n");
-            }
-            
-            bw.Flush();
-
+            File.WriteAllText(ResourceMapPath, sb.ToString());
             AssetDatabase.ImportAsset(ResourceMapPath);
         }
 
@@ -102,9 +85,11 @@ namespace References.UnityResources.Editor
                 var resourcePath = projectPath[(projectPath.LastIndexOf(resourcesFolderPattern, StringComparison.Ordinal) + resourcesFolderPattern.Length)..];
                 resourcePath = resourcePath[..resourcePath.LastIndexOf(".", StringComparison.Ordinal)];
                 if (!uniqueResourcePaths.Add(resourcePath))
-                    Debug.LogError($"Resource path \"{resourcePath}\" is used multiple times across project. Runtime collisions possible (and reference can point not what you expect).");
+                    Debug.LogWarning($"Resource path \"{resourcePath}\" is used multiple times across project. Runtime collisions possible (and reference can point not what you expect).");
                 
                 var guid = AssetDatabase.AssetPathToGUID(projectPath);
+                if (string.IsNullOrEmpty(guid))
+                    Debug.LogError("no guid for resource");
                 var subObjectNames = AssetDatabase.LoadAllAssetRepresentationsAtPath(projectPath).Select(o => o.name).ToArray();
                 
                 yield return new ResourceInfo(guid, subObjectNames.Length > 0 ? subObjectNames : null, resourcePath);
