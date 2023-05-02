@@ -162,21 +162,17 @@ namespace References.UnityResources
             counters.Remove(guid);
             switch (obj)
             {
-                // because can't use direct unload - will try to destroy loaded from resources prefab (idk if it secure and won't break game)
-                case GameObject gameObject:
-                    UnityEngine.Object.Destroy(gameObject);
+                case GameObject:
+                case Component:
+                    Resources.UnloadUnusedAssets();
                     break;
-                
-                case Component component:
-                    UnityEngine.Object.Destroy(component.gameObject);
-                    break;
-                
                 case AssetBundle assetBundle:
                     assetBundle.Unload(true);
-                    return;
+                    break;
+                default:
+                    Resources.UnloadAsset(obj);
+                    break;
             }
-            
-            Resources.UnloadAsset(obj);
         }
 
         public async
