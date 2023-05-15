@@ -8,39 +8,38 @@ namespace References
 {
     public static class AssetSystem
     {
-        private static bool isInitializedAndNotDisposed;
+        private static bool _isInitializedAndNotDisposed;
 
         private static readonly List<Type> AssetProviderTypes = new();
-        private static IAssetProvider[] AssetProviders;
+        private static IAssetProvider[] _assetProviders;
 
         public static void Initialize()
         {
-            Assert.IsFalse(isInitializedAndNotDisposed, "Already initialized!");
-
-            AssetProviders = AssetProviderTypes
-                             .Select(Activator.CreateInstance)
-                             .Cast<IAssetProvider>()
-                             .OrderByDescending(assetProvider => assetProvider.Priority)
-                             .ToArray();
+            Assert.IsFalse(_isInitializedAndNotDisposed, "Already initialized!");
             
-            isInitializedAndNotDisposed = true;
+            _assetProviders = AssetProviderTypes
+                              .Select(Activator.CreateInstance)
+                              .Cast<IAssetProvider>()
+                              .OrderByDescending(assetProvider => assetProvider.Priority)
+                              .ToArray();
+
+            _isInitializedAndNotDisposed = true;
         }
 
         public static void Dispose()
         {
-            foreach (var assetProvider in AssetProviders)
+            foreach (var assetProvider in _assetProviders)
                 assetProvider.Dispose();
 
-            AssetProviderTypes.Clear();
-            AssetProviders = null;
-            isInitializedAndNotDisposed = false;
+            _assetProviders = null;
+            _isInitializedAndNotDisposed = false;
         }
 
         internal static IAssetProvider GetAssetProvider(in string guid)
         {
-            Assert.IsTrue(isInitializedAndNotDisposed, "Assets System is disposed or not initialized yet.");
-        
-            foreach (var assetProvider in AssetProviders)
+            Assert.IsTrue(_isInitializedAndNotDisposed, "Assets System is disposed or not initialized yet.");
+
+            foreach (var assetProvider in _assetProviders)
                 if (assetProvider.CanProvideAsset(guid))
                     return assetProvider;
 
@@ -49,15 +48,15 @@ namespace References
 
         public static void RegisterAssetProvider<T>() where T : IAssetProvider, new()
         {
-            Assert.IsFalse(isInitializedAndNotDisposed, "Assets System IAssetProvider can be only registered when not initialized.");
-            
+            Assert.IsFalse(_isInitializedAndNotDisposed, "Assets System IAssetProvider can be only registered when not initialized.");
+
             var assetProviderType = typeof(T);
             if (AssetProviderTypes.Contains(assetProviderType))
             {
                 Debug.LogError($"Asset Provider type {assetProviderType.FullName} already registered.");
                 return;
             }
-            
+
             AssetProviderTypes.Add(assetProviderType);
         }
 
@@ -69,7 +68,7 @@ namespace References
                 Debug.LogError($"Asset Provider type {assetProviderType.FullName} is not registered.");
                 return;
             }
-            
+
             AssetProviderTypes.Remove(assetProviderType);
         }
     }

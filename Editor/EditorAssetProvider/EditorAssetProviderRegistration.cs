@@ -25,6 +25,9 @@ namespace References.EditorAssetProvider
 
         private static void OnApplicationQuit()
         {
+            if (IsDisabled) // isDisabled
+                return;
+            
             Application.quitting -= OnApplicationQuit;
             AssetSystem.UnregisterAssetProvider<EditorAssetProvider>();
         }

@@ -55,7 +55,7 @@ namespace References.EditorAssetProvider
             {
                 report.AppendLine($"<color=#{color}>Some objects not cleared:</color>");
                 foreach (var kv in objectCounters)
-                    report.AppendLine($"    {kv.Key.name}{kv.Key}: {kv.Value.ToString()} references not cleared.");
+                    report.AppendLine($"    {kv.Key.name}(View: {kv.Key}): {kv.Value.ToString()} references not cleared.");
             }
 
             Debug.Log(report.ToString());
