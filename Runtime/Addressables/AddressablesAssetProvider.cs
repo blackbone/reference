@@ -41,8 +41,6 @@ namespace References.Addressables
         private bool initialized;
         public AddressablesAssetProvider()
         {
-            Debug.Log(nameof(AddressablesAssetProvider));
-            
             initializationCts = new CancellationTokenSource();
             Initialize(null, initializationCts.Token)
                 .ContinueWith(() =>

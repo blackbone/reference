@@ -29,8 +29,6 @@ namespace References.UnityResources
 
         public UnityResourcesAssetProvider()
         {
-            Debug.Log(nameof(UnityResourcesAssetProvider));
-
             var resourcesMappingAsset = Resources.Load<TextAsset>(ResourceMapName);
 
             if (resourcesMappingAsset == null)
