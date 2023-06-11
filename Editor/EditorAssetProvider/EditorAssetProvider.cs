@@ -93,7 +93,7 @@ namespace References.EditorAssetProvider
             if (string.IsNullOrEmpty(assetPath))
                 throw new Exception($"Can't find asset with guid {guid} in project.");
 
-            var op = EditorSceneManager.LoadSceneAsyncInPlayMode(assetPath, new LoadSceneParameters(loadSceneMode, LocalPhysicsMode.Physics3D | LocalPhysicsMode.Physics2D));
+            var op = EditorSceneManager.LoadSceneAsyncInPlayMode(assetPath, new LoadSceneParameters(loadSceneMode));
             await op.ToUniTask(progress, cancellationToken: cancellationToken);
             return SceneManager.GetSceneByPath(assetPath);
         }
