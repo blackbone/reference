@@ -35,7 +35,10 @@ namespace References
         /// Show string representation.
         /// </summary>
         /// <returns></returns>
-        public readonly override string ToString() => $"{guid}[{subAsset}]({(directReference != null ? "direct" : "indirect")}";
+        public readonly override string ToString()
+        {
+            return $"{guid}[{subAsset}]({(directReference != null ? "direct" : "indirect")}";
+        }
 
         public static implicit operator Reference(in Reference<T> reference)
             => new(reference.guid, reference.subAsset, reference.directReference);
