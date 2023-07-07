@@ -19,8 +19,18 @@ namespace References.EditorAssetProvider
             if (IsDisabled) // isDisabled
                 return;
             
+            Debug.Log($"Registering {nameof(EditorAssetProvider)}");
             AssetSystem.RegisterAssetProvider<EditorAssetProvider>();
             Application.quitting += OnApplicationQuit;
+            
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
+            {
+                if (playModeStateChange != PlayModeStateChange.ExitingPlayMode) return;
+                OnApplicationQuit();
+            }
+#endif
         }
 
         private static void OnApplicationQuit()
@@ -28,6 +38,7 @@ namespace References.EditorAssetProvider
             if (IsDisabled) // isDisabled
                 return;
             
+            Debug.Log($"Unregistering {nameof(EditorAssetProvider)}");
             Application.quitting -= OnApplicationQuit;
             AssetSystem.UnregisterAssetProvider<EditorAssetProvider>();
         }
