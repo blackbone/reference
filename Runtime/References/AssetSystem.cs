@@ -63,13 +63,8 @@ namespace References
         public static void UnregisterAssetProvider<T>()
         {
             var assetProviderType = typeof(T);
-            if (!AssetProviderTypes.Contains(assetProviderType))
-            {
-                Debug.LogError($"Asset Provider type {assetProviderType.FullName} is not registered.");
-                return;
-            }
-
-            AssetProviderTypes.Remove(assetProviderType);
+            if (!AssetProviderTypes.Remove(assetProviderType))
+                Debug.LogWarning($"Asset Provider type {assetProviderType.FullName} is not registered.");
         }
     }
 }
