@@ -1,26 +1,26 @@
-namespace References
+using UnityEngine;
+using UnityEditor;
+
+namespace References.Editor
 {
-    using UnityEngine;
-
-    public static partial class ReferenceExtensions
+    public static class ReferenceExtensions
     {
-        private static bool CheckDirectReference(Reference reference, out Object result)
-        {
-            result = reference.Asset;
-            return result != null;
-        }
+        public static string GetEditorAssetPath<T>(this Reference<T> reference) where T : Object
+            => AssetDatabase.GUIDToAssetPath(reference.AssetGuid);
 
-        private static bool CheckDirectReference<T>(Reference<T> reference, out T result) where T : Object
+        public static bool GetEditorAsset<T>(this Reference<T> reference, out T result) where T : Object
         {
-            if (reference.Asset == null)
+            var assetPath = GetEditorAssetPath(reference);
+            if (string.IsNullOrEmpty(assetPath))
             {
-                result = null;
+                result = default;
                 return false;
             }
-            
-            var assetType = reference.Asset.GetType();
-            var requiredType      = typeof(T);
 
+            var editorAsset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
+            var assetType = editorAsset.GetType();
+            var requiredType = typeof(T);
+            
             if (typeof(Component).IsAssignableFrom(requiredType))
             {
                 switch (reference.Asset)
@@ -43,7 +43,7 @@ namespace References
                 return true;
             }
 
-            result = null;
+            result = default;
             return false;
         }
     }

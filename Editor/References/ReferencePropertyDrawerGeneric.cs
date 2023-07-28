@@ -1,4 +1,6 @@
-﻿namespace References.Editor
+﻿using UnityEngine;
+
+namespace References.Editor
 {
     using System;
     using System.Collections;
@@ -8,7 +10,7 @@
     [CustomPropertyDrawer(typeof(Reference<>), true)]
     public sealed class ReferencePropertyDrawerGeneric : ReferencePropertyDrawer
     {
-        private static readonly Type IList = typeof(IList);
+        private static readonly Type TypeIList = typeof(IList);
         
         protected override Type TypeRestriction
         {
@@ -21,7 +23,7 @@
                     type = type.GetElementType();
                 
                 // handle lists
-                else if (IList.IsAssignableFrom(type) && type.IsGenericType)
+                else if (TypeIList.IsAssignableFrom(type) && type.IsGenericType)
                     type = type.GetGenericArguments().FirstOrDefault();
 
                 type = type?.GetGenericArguments().FirstOrDefault();

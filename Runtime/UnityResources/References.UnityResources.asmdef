@@ -1,0 +1,15 @@
+{
+  "name": "References.UnityResources",
+  "rootNamespace": "References.UnityResources",
+  "references": [
+    "UniTask",
+    "References"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.cysharp.unitask",
+      "expression": "",
+      "define": "UNITASK"
+    }
+  ]
+}
