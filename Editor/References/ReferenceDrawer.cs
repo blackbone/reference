@@ -172,7 +172,8 @@ namespace References.Editor
 
         protected virtual void PopulateContextMenu(GenericMenu context, string guid, string subAsset, UnityEngine.Object currentAsset)
         {
-            context.AddItem(new GUIContent("Code Snippet"), false, () => GUIUtility.systemCopyBuffer = GetCodeString(guid, subAsset));
+            if (!string.IsNullOrEmpty(guid))
+                context.AddItem(new GUIContent("Code Snippet"), false, () => GUIUtility.systemCopyBuffer = GetCodeString(guid, subAsset));
         }
 
         private UnityEngine.Object GetEditorAsset(string guid, string subAssetName)
