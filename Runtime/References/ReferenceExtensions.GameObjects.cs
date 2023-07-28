@@ -15,7 +15,7 @@ namespace References
 
     public static partial class ReferenceExtensions
     {
-        public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent = null, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        public static TaskGameObject InstantiateAsync(this in Reference<GameObject> reference, Transform parent, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             if (!reference.IsValid())
                 throw new Exception("Reference is not valid!");
@@ -41,7 +41,7 @@ namespace References
 #else
             Tasks.Task<T>
 #endif
-            InstantiateAsync<T>(this in Reference<T> reference, Transform parent = null, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
+            InstantiateAsync<T>(this in Reference<T> reference, Transform parent, bool worldPositionStays = true, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : Component
         {
             if (CheckDirectReference(reference, out var result))
             {
