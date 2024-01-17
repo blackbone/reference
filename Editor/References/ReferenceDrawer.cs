@@ -32,11 +32,6 @@ namespace References.Editor
             return EditorGUIUtility.singleLineHeight;
         }
 
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return false;
-        }
-
         protected abstract string GetCodeString(string guid, string subAsset);
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

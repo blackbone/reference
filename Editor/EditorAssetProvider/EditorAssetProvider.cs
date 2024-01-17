@@ -98,11 +98,11 @@ namespace References.EditorAssetProvider
             return SceneManager.GetSceneByPath(assetPath);
         }
 
-        public async
+        public
 #if UNITASK
             UniTask<T>
 #else
-            Tasks.Task<T>
+            async Tasks.Task<T>
 #endif
             LoadAsync<T>(string guid, string subAsset, IProgress<float> progress = null, CancellationToken cancellationToken = default) where T : UnityEngine.Object
         {
@@ -131,7 +131,11 @@ namespace References.EditorAssetProvider
             objectCounters.TryGetValue(result, out var count);
             objectCounters[result] = count + 1;
             loads++;
+#if UNITASK
+            return UniTask.FromResult(result);
+#else
             return result;
+#endif
         }
 
         public async
@@ -161,7 +165,7 @@ namespace References.EditorAssetProvider
 
             if (asset == null)
             {
-                Debug.LogError("FFFUUU!!!");
+                Debug.LogError($"Failed to load asset at address \"{guid}\".");
                 Release(asset);
                 return default;
             }
@@ -197,7 +201,7 @@ namespace References.EditorAssetProvider
 
             if (asset == null)
             {
-                Debug.LogError("FFFUUU!!!");
+                Debug.LogError($"Failed to load asset at address \"{guid}\".");
                 Release(asset);
                 return default;
             }
@@ -309,14 +313,14 @@ namespace References.EditorAssetProvider
 
             if (asset == null)
             {
-                Debug.LogError("FFFUUU!!! Can't load");
+                Debug.LogError($"Failed to load asset at address \"{guid}\".");
                 Release(asset);
                 return default;
             }
 
             if (asset.GetComponent(componentType) == null)
             {
-                Debug.LogError("FFFUUU!!! no component");
+                Debug.LogError($"Failed get component from loaded address \"{guid}\".");
                 Release(asset);
                 return default;
             }
