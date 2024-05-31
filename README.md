@@ -3,7 +3,13 @@
 This is a general purpose package that gives ability to work with asset references in your project in async paradigm.
 
 ## Installation
-Simply add as git package in unity.
+> [!WARNING]
+> package name changed from `com.blackbone.assets` to `com.blackbone.reference`
+
+
+Simply add as git package in unity or a line below to `manifest.json`
+
+`"com.blackbone.reference": "https://github.com/blackbone/reference.git#v0.3.0"`
 
 ## Usage
 
