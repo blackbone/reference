@@ -101,3 +101,8 @@ This package supports UniTask and it will be used if added to project, no need f
 
 This package is mostly designed to use addressables as underlaying resource manager and it will be used as default if added to project.
 But you also free to adapt your own res manager by implementing **IAssetService** interface and registering it by setting **AssetService.Current** before trying to use any Reference.
+
+
+# Support
+
+<a href="https://www.buymeacoffee.com/blackbone"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a whisky&emoji=🥃&slug=blackbone&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
