@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace References.Editor
 {
@@ -165,7 +166,7 @@ namespace References.Editor
             property.serializedObject.ApplyModifiedProperties();
         }
 
-        protected virtual void PopulateContextMenu(GenericMenu context, string guid, string subAsset, UnityEngine.Object currentAsset)
+        private void PopulateContextMenu(GenericMenu context, string guid, string subAsset, UnityEngine.Object currentAsset)
         {
             if (!string.IsNullOrEmpty(guid))
                 context.AddItem(new GUIContent("Code Snippet"), false, () => GUIUtility.systemCopyBuffer = GetCodeString(guid, subAsset));

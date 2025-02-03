@@ -12,7 +12,6 @@ namespace References.UnityResources
     using Cysharp.Threading.Tasks;
 #else
     using Tasks = System.Threading.Tasks;
-    // TODO [Dmitrii Osipov] non unitask api
 #endif
 
     internal sealed class UnityResourcesAssetProvider : IAssetProvider
@@ -30,7 +29,6 @@ namespace References.UnityResources
         public UnityResourcesAssetProvider()
         {
             var resourcesMappingAsset = Resources.Load<TextAsset>(ResourceMapName);
-
             if (resourcesMappingAsset == null)
             {
                 Debug.LogError($"Failed to initialize {nameof(UnityResourcesAssetProvider)}. No Resource Map asset found. Provider will not work properly.");

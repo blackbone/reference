@@ -9,7 +9,7 @@ This is a general purpose package that gives ability to work with asset referenc
 
 Simply add as git package in unity or a line below to `manifest.json`
 
-`"com.blackbone.reference": "https://github.com/blackbone/reference.git#v0.3.0"`
+`"com.blackbone.reference": "https://github.com/blackbone/reference.git#v0.3.1"`
 
 ## Usage
 

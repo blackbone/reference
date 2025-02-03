@@ -1,15 +1,13 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace References.UnityResources.Editor
 {
     internal sealed class ResourceInfo
     {
-        public string Guid;
-        public string[] SubAssetNames;
-        public string ResourcePath;
+        private readonly string Guid;
+        private readonly string[] SubAssetNames;
+        private readonly string ResourcePath;
 
         public ResourceInfo(string guid, string[] subAssetNames, string resourcePath)
         {

@@ -20,8 +20,7 @@ namespace References.Editor
         protected override string GetCodeString(string guid, string subAsset)
         {
             Assert.IsFalse(string.IsNullOrEmpty(guid));
-            
-            return $"new Reference(\"{guid}\"{(string.IsNullOrEmpty(subAsset) ? string.Empty : ", \"{subAsset}\"")})";
+            return $"new Reference(\"{guid}\"{(string.IsNullOrEmpty(subAsset) ? string.Empty : $", {subAsset}")})";
         }
     }
 }

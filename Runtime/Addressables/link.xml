@@ -1,5 +1,8 @@
 <linker>
   <assembly fullname="Reference.Addressables" preserve="all">
     <type fullname="Reference.Addressables.AddressablesAssetProviderRegistration" preserve="all" />
+    <type fullname="Reference.Addressables.AddressablesAssetProvider" preserve="all" />
+    <type fullname="Reference.Addressables.AssetReferenceExtensions" preserve="all" />
+    <type fullname="Reference.Addressables.AsyncOperationExtensions" preserve="all" />
   </assembly>
 </linker>

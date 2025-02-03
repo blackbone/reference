@@ -14,8 +14,8 @@ namespace References.UnityResources.Editor
     internal sealed class UnityResourcesBuildPreprocessor : IPreprocessBuildWithReport
     {
         private const string ResourceMapPath = "Assets/Resources/" + UnityResourcesAssetProvider.ResourceMapName + ".bytes";
-        private const string PlayModeGenerateToggleMenuName = "Assets/References/Generate Resource Map on Play Mode";
-        private const string GenerateResourceMapMenuName = "Assets/References/Generate Resource Map";
+        private const string PlayModeGenerateToggleMenuName = "Tools/Asset Providers/Resource Map Generation Enabled";
+        private const string GenerateResourceMapMenuName = "Tools/Asset Providers/Generate Resource Map Now";
         private static bool isEnabled;
 
         static UnityResourcesBuildPreprocessor()

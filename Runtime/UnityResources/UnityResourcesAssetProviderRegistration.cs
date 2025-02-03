@@ -1,11 +1,18 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace References.UnityResources
 {
-    internal static class UnityResourcesAssetProviderRegistration
+    [Preserve]
+    public static class UnityResourcesAssetProviderRegistration
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Register()
+        [Preserve]
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        public static void Register()
         {
             Debug.Log($"Registering {nameof(UnityResourcesAssetProvider)}");
             AssetSystem.RegisterAssetProvider<UnityResourcesAssetProvider>();

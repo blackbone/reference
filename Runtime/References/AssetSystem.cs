@@ -23,6 +23,9 @@ namespace References
                               .OrderByDescending(assetProvider => assetProvider.Priority)
                               .ToArray();
 
+            foreach(var ap in _assetProviders)
+                Debug.Log($"[References] Asset provider {ap} registered.");
+
             _isInitializedAndNotDisposed = true;
         }
 

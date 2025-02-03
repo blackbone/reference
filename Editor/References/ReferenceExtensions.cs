@@ -8,19 +8,19 @@ namespace References.Editor
         public static string GetEditorAssetPath<T>(this Reference<T> reference) where T : Object
             => AssetDatabase.GUIDToAssetPath(reference.AssetGuid);
 
-        public static bool GetEditorAsset<T>(this Reference<T> reference, out T result) where T : Object
+        public static bool TryGetEditorAsset<T>(this Reference<T> reference, out T result) where T : Object
         {
             var assetPath = GetEditorAssetPath(reference);
             if (string.IsNullOrEmpty(assetPath))
             {
-                result = default;
+                result = null;
                 return false;
             }
 
             var editorAsset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
             var assetType = editorAsset.GetType();
             var requiredType = typeof(T);
-            
+
             if (typeof(Component).IsAssignableFrom(requiredType))
             {
                 switch (reference.Asset)
@@ -43,7 +43,7 @@ namespace References.Editor
                 return true;
             }
 
-            result = default;
+            result = null;
             return false;
         }
     }

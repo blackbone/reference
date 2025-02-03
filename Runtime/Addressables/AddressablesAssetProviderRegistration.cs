@@ -1,11 +1,19 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace References.Addressables
 {
-    internal static class AddressablesAssetProviderRegistration
+    [Preserve]
+    public static class AddressablesAssetProviderRegistration
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        private static void Register()
+        [Preserve]
+
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+#endif
+        public static void Register()
         {
             Debug.Log($"Registering {nameof(AddressablesAssetProvider)}");
             AssetSystem.RegisterAssetProvider<AddressablesAssetProvider>();

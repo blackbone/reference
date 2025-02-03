@@ -112,15 +112,19 @@ namespace References.Addressables
 
         public async TaskScene LoadSceneAsync(string guid, LoadSceneMode loadSceneMode = LoadSceneMode.Single, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
+            Debug.Log($"[Addressables Provider] start loading {guid}({loadSceneMode}) scene...");
             var op = Addressables.LoadSceneAsync(guid, loadSceneMode, false);
             await op.ToUniTask(progress, cancellationToken: cancellationToken);
+            Debug.Log($"[Addressables Provider] loadinged {guid}({loadSceneMode}) scene");
             if (op.Status == AsyncOperationStatus.Failed)
             {
                 Debug.LogError($"Unable to load scene from location {guid}:\r\n{op.OperationException}");
                 return default;
             }
 
+            Debug.Log($"[Addressables Provider] start activating {guid}({loadSceneMode}) scene...");
             await op.Result.ActivateAsync().ToUniTask(cancellationToken: cancellationToken);
+            Debug.Log($"[Addressables Provider] activated {guid}({loadSceneMode}) scene");
             return op.Result.Scene;
         }
 
